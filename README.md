@@ -1,6 +1,9 @@
 # FB Marketplace Recommendation Ranking System
 
-> This project includes building a ranking system to provide users with the most relevant products based on their search query through using deep learning frameworks like CNNs and Transfer Learning with the help of the Pytorch library.
+> This project includes building a ranking system to provide users with the most relevant products based on their search query through using deep learning frameworks like CNNs and Transfer Learning with the help of the Pytorch library. Shown below is a flowchart describing the overview of the system encompassing various technologies:
+
+![image](https://user-images.githubusercontent.com/51030860/178149528-8a7c5b0c-3f14-46b0-b708-ff3faf455755.png)
+
 
 ## Milestone 1
 
