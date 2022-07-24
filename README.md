@@ -2,7 +2,7 @@
 
 ## Milestone 1: An overview of the system
 
-> This project includes building a ranking system to provide users with the most relevant products based on their search query through using using a multimodal deep neural network with methods like CNNs and Transfer Learning. The model is a mini implementation of a larger system that Facebook developed and advanced to generate product recommendation rankings for buyers on Facebook Marketplace. Shown below is a flowchart describing the overview of the system encompassing various technologies:
+> This project works on building and replication a product ranking system of Facebook Marketplace to provide users with the most relevant products based on their search query through using using multimodal pre-traineddeep neural networks such as CNNs using Transfer Learning. The model is a mini implementation of a larger system that Facebook developed and advanced to generate product recommendation rankings for buyers on Facebook Marketplace. Shown below is a flowchart describing the overview of the system encompassing various technologies:
 
 ![image](https://user-images.githubusercontent.com/51030860/178149528-8a7c5b0c-3f14-46b0-b708-ff3faf455755.png)
 
@@ -10,9 +10,26 @@ Here is the ![video link](https://www.youtube.com/watch?v=1Z5V2VrHTTA&ab_channel
 
 ## Milestone 2: Cleaning the tabular and image datasets
 
-- In this stage, we perform data cleaning steps for the product and image datasets where concerning the product tabular dataset, we ensure all null and duplicate values are removed, and the price column is converted to float and the product creation time on Facebook is converted to datetime. Regarding the images dataset, we create a pipeline which resizes all the images into one consistent format such that all images have the same number of channels and size. 
+- In this stage, we perform data cleaning steps for the product and image datasets. Firstly, conncerning the product tabular dataset, we have a pipeline which completes all cleaning steps such as ensuring all null and duplicate values are removed and all data formats are correct e.g., the price column is converted to float and the product creation time is converted to datetime. Regarding the images dataset, we create a pipeline which resizes all the images into one consistent format such that all images have the same number of channels and size. An important point to mention is that the images in the folder are named by their id so we will sort these images first and then apply the image resizing pipeline. Similarly, when we merge both the image and product tabular datasets, we will sort the dataframe by image id which will help us in the classification task.
 
-- We use the pandas library and Regex expression to clean the product dataset. For images, we use pillow and os libraries in python where the clean_image_data function takes in the path for folder containing all the images, opens all the images using a for loop, resizes all of them and saves them into a new directory called cleaned_images. Below is a snippet shown of the process of how we resize all images and having only RGB channels.
+- Moreover, in order to have only the images that are in the image tabular dataset, first we merge the product and image datasets together, perform all the cleaning steps and then before resize the image, we check whether the id (name of the image file) is in the unique image id's in the tabular dataset. This ensures we have the same number of dimensions when performing image classification. Below is a code snippet that shows how we do it:
+
+```python
+# check if cleaned_images exists
+new_path = 'cleaned_images/'
+if not os.path.exists(path+new_path):
+    os.makedirs(new_path)
+
+final_size = 90
+
+for n, item in enumerate(dirs, 1):
+    if item.split('.')[0] in list(images_data['id'].unique()): # Here we check whether the image id is contained in the merged tabular dataset
+        im = Image.open(path + item)
+        new_im = resize_image(final_size, im)
+        new_im.save(f'{new_path}{n}_resized.jpg')
+```
+
+- We use the pandas library and Regex expression to clean the product dataset. For images, we use pillow and os libraries in python where the clean_image_data function takes in the path for the folder containing all the images, opens all the images using a for loop, resizes all of them and saves them into a new directory called cleaned_images. Below is a snippet shown of the process of how we resize all images and having only RGB channels. We only use the final size as 90 as large pixel sizes will increase the machine learning classification model time.
   
 ```python
 size = im.size
