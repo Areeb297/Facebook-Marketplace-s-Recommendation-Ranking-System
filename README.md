@@ -29,7 +29,17 @@ for n, item in enumerate(dirs, 1):
         new_im.save(f'{new_path}{n}_resized.jpg')
 ```
 
-- We use the pandas library and Regex expression to clean the product dataset. For images, we use pillow and os libraries in python where the clean_image_data function takes in the path for the folder containing all the images, opens all the images using a for loop, resizes all of them and saves them into a new directory called cleaned_images. Below is a snippet shown of the process of how we resize all images and having only RGB channels. We only use the final size as 90 as large pixel sizes will increase the machine learning classification model time.
+- We use the pandas library and Regex expression to clean the product dataset for example, we only keep alphanumeric characters and remove uncessary spaces as shown below:
+
+```python
+
+non_alpha_numeric = column.str.replace('\W', ' ', regex=True).apply(lambda x: x.lower())
+non_whitespace = non_alpha_numeric.str.replace('\s+', ' ', regex=True)
+# remove all single characters
+clean_text = non_whitespace.apply(lambda x: ' '.join([w for w in x.split() if len(w)>1]))
+```
+  
+- For images, we use pillow and os libraries in python where the clean_image_data function takes in the path for the folder containing all the images, opens all the images using a for loop, resizes all of them and saves them into a new directory called cleaned_images. Below is a snippet shown of the process of how we resize all images and having only RGB channels. We only use the final size as 90 as large pixel sizes will increase the machine learning classification model time.
   
 ```python
 size = im.size
@@ -42,6 +52,41 @@ new_im.paste(im, ((final_size-new_image_size[0])//2, (final_size-new_image_size[
 
 
 ## Milestone 3: Create simple Machine Learning models
+
+We created two simple ML models using Linear regression and Logistic regression (for classifiation):
+
+1) Predicting the product price based on product name, description, and location
+2) Predicting product category based on the image dataset converted into numpy arrays
+
+- Linear Regression model for predicting price (Regression): First we split the data into features (name, description, location) and targets (price) to then transform our features using TfidfVectorizer where we convert all the text into weights assigned to each word based on their term frequency. Additionally, we exclude stopwords from our features such as 'the', 'are' etc. This is done to remove unnecessary words from hindering our model performance. Next we have hyperparameters we define for Gridsearch to select the optimal and then lastly we perform linear regression. We do get a terrible RMSE (~8000) and r^2 score (~ -0.1) as we have too many features (curse of dimensionality) and so perhaps we can focus on removing further words from our model. Furthermore, we only keep the first 8 words in the product name to avoid having a seriously long name in our analysis. 
+
+```python
+pipeline = Pipeline(
+
+    [   
+        ("tfidf", tfidf),
+        ("lr", LinearRegression())
+    ]
+)
+# set parameters for the tfidf vectors
+parameters = {
+    'tfidf__vector_1__ngram_range': ((1, 1), (1, 2)),
+    'tfidf__vector_2__min_df': (0.001, 0.005),
+
+    'tfidf__vector_2__ngram_range': ((1, 1),(1, 2)),
+}
+
+grid_search = GridSearchCV(pipeline, parameters, n_jobs=-1, verbose=2)
+# split data in to train/test
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.35)
+
+grid_search.fit(X_train, y_train)
+
+rmse = np.sqrt(mean_squared_error(y_test, grid_search.predict(X_test)))
+print(f'RMSE: {rmse}')
+print(f'The r^2 score was: {r2_score(grid_search.predict(X_test), y_test)}')
+```
+Logistic Regression for predicting product category (classification): 
 
 ## Milestone 4: Create the vision model
 
