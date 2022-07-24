@@ -55,10 +55,10 @@ new_im.paste(im, ((final_size-new_image_size[0])//2, (final_size-new_image_size[
 
 We created two simple ML models using Linear regression and Logistic regression (for classifiation):
 
-1) Predicting the product price based on product name, description, and location
-2) Predicting product category based on the image dataset converted into numpy arrays
+- Predicting the product price based on product name, description, and location
+- Predicting product category based on the image dataset converted into numpy arrays
 
-- Linear Regression model for predicting price (Regression): First we split the data into features (name, description, location) and targets (price) to then transform our features using TfidfVectorizer where we convert all the text into weights assigned to each word based on their term frequency. Additionally, we exclude stopwords from our features such as 'the', 'are' etc. This is done to remove unnecessary words from hindering our model performance. Next we have hyperparameters we define for Gridsearch to select the optimal and then lastly we perform linear regression. We do get a terrible RMSE (~8000) and r^2 score (~ -0.1) as we have too many features (curse of dimensionality) and so perhaps we can focus on removing further words from our model. Furthermore, we only keep the first 8 words in the product name to avoid having a seriously long name in our analysis. 
+1- Linear Regression model for predicting price (Regression): First we split the data into features (name, description, location) and targets (price) to then transform our features using TfidfVectorizer where we convert all the text into weights assigned to each word based on their term frequency. Additionally, we exclude stopwords from our features such as 'the', 'are' etc. This is done to remove unnecessary words from hindering our model performance. Next we have hyperparameters we define for Gridsearch to select the optimal and then lastly we perform linear regression. We do get a terrible RMSE (~8000) and r^2 score (~ -0.1) as we have too many features (curse of dimensionality) and so perhaps we can focus on removing further words from our model. Furthermore, we only keep the first 8 words in the product name to avoid having a seriously long name in our analysis. 
 
 ```python
 pipeline = Pipeline(
@@ -86,7 +86,7 @@ rmse = np.sqrt(mean_squared_error(y_test, grid_search.predict(X_test)))
 print(f'RMSE: {rmse}')
 print(f'The r^2 score was: {r2_score(grid_search.predict(X_test), y_test)}')
 ```
-Logistic Regression for predicting product category (classification): 
+2- Logistic Regression for predicting product category (classification): 
 
 ## Milestone 4: Create the vision model
 
