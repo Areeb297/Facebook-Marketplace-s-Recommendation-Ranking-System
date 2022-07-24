@@ -86,7 +86,26 @@ rmse = np.sqrt(mean_squared_error(y_test, grid_search.predict(X_test)))
 print(f'RMSE: {rmse}')
 print(f'The r^2 score was: {r2_score(grid_search.predict(X_test), y_test)}')
 ```
-2 - Logistic Regression for predicting product category (Classification): 
+2 - Logistic Regression for predicting product category (Classification): Firstly, we obtain the images from the cleaned_images folder and convert to numpy array format and reshape them as 2D to be able to store the images as a dataframe. The total number was 12,600 where we saved the dataframe as a pickle file to prevent the array format of images being changed after we reload the dataframe. Next we sorted the merged dataframe by image id so we have the same ordering as the files in the cleaned_images folder, we perform train-test split and use logistic regression for classification for all 13 categories. We obtain around 7.5% accuracy which is poor but it gives us a benchmark to compare and improve upon when using deep learning frameworks. We print the classification report additionally which gives us the precision, recall, and f1-score for each category where we can see that our model performs best when predicting the video games & consoles category. For future, we can have greater pixel sizes for our images as much of the detail in the images with (90x90) pixels is lost. Lastly, we can exploit hyperparameter tuning, cross-validation and potentially regularization to reduce variance in the data and reduce overfitting. Shown below is the code snippet we use to run the model:
+
+```python
+df.sort_values(by='id', inplace=True) # So that the order of the images in both the tabular and non-tabular are the same
+df.category = df.category.apply(lambda x: x.split('/')[0]) # Get the category most closest to the product (the one on the most left)
+df.category = df.category.astype('category')
+df['category_codes'] = df.category.cat.codes
+
+y = df.category_codes # target variable
+X = images_to_array('cleaned_images/')
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+model = LogisticRegression()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+
+print(f'The accuracy of our predictions: {round(accuracy_score(y_test, y_pred), 5) * 100} %')
+print(classification_report(y_test, y_pred))
+print(dict(enumerate(df['category'].cat.categories))) # Prints which code corresponds to which category
+```
 
 ## Milestone 4: Create the vision model
 
