@@ -58,7 +58,7 @@ We created two simple ML models using Linear regression and Logistic regression 
 - Predicting the product price based on product name, description, and location
 - Predicting product category based on the image dataset converted into numpy arrays
 
-1 - Linear Regression model for predicting price (Regression): 
+<ins>1 - Linear Regression model for predicting price (Regression):</ins>
 
 First we split the data into features (name, description, location) and targets (price) to then transform our features using TfidfVectorizer where we convert all the text into weights assigned to each word based on their term frequency. Additionally, we exclude stopwords from our features such as 'the', 'are' etc. This is done to remove unnecessary words from hindering our model performance. Next we have hyperparameters we define for Gridsearch to select the optimal and then lastly we perform linear regression. We do get a terrible RMSE (~8000) and r^2 score (~ -0.1) as we have too many features (curse of dimensionality) and so perhaps we can focus on removing further words from our model. Furthermore, we only keep the first 8 words in the product name to avoid having a seriously long name in our analysis. 
 
