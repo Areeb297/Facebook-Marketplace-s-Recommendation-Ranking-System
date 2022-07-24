@@ -1,13 +1,14 @@
 # FB Marketplace Recommendation Ranking System
 
+## Milestone 1: An overview of the system
+
 > This project includes building a ranking system to provide users with the most relevant products based on their search query through using using a multimodal deep neural network with methods like CNNs and Transfer Learning. The model is a mini implementation of a larger system that Facebook developed and advanced to generate product recommendation rankings for buyers on Facebook Marketplace. Shown below is a flowchart describing the overview of the system encompassing various technologies:
 
 ![image](https://user-images.githubusercontent.com/51030860/178149528-8a7c5b0c-3f14-46b0-b708-ff3faf455755.png)
 
 Here is the ![video link](https://www.youtube.com/watch?v=1Z5V2VrHTTA&ab_channel=AiCore) for further information and reference.
 
-
-## Milestone 1
+## Milestone 2: Cleaning the tabular and image datasets
 
 - In this stage, we perform data cleaning steps for the product and image datasets where concerning the product tabular dataset, we ensure all null and duplicate values are removed, and the price column is converted to float and the product creation time on Facebook is converted to datetime. Regarding the images dataset, we create a pipeline which resizes all the images into one consistent format such that all images have the same number of channels and size. 
 
@@ -23,7 +24,15 @@ new_im.paste(im, ((final_size-new_image_size[0])//2, (final_size-new_image_size[
 ```
 
 
-## Milestone 2
+## Milestone 3: Create simple Machine Learning models
+
+## Milestone 4: Create the vision model
+
+## Milestone 5: Create the text understanding model
+
+## Milestone 6: Combine the models
+
+## Milestone 7: Configure and deploy the model serving API
 
 - Does what you have built in this milestone connect to the previous one? If so explain how. What technologies are used? Why have you used them? Have you run any commands in the terminal? If so insert them using backticks (To get syntax highlighting for code snippets add the language after the first backticks).
 
