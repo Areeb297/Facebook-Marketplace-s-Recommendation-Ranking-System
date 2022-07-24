@@ -4,6 +4,8 @@
 
 ![image](https://user-images.githubusercontent.com/51030860/178149528-8a7c5b0c-3f14-46b0-b708-ff3faf455755.png)
 
+Here is the ![video](https://www.youtube.com/watch?v=1Z5V2VrHTTA&ab_channel=AiCore) for further information and reference
+
 
 ## Milestone 1
 
