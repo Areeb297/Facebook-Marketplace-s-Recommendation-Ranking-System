@@ -65,7 +65,7 @@ def image_classification():
     {'penalty' : ['l1', 'l2'],
     'C' : np.logspace(-4, 4, 20),
     'solver' : ['lbfgs','newton-cg','liblinear'],
-    'max_iter' : [100, 1000, 1500]
+    'max_iter' : [100, 1000, 1500],
     }
     ]
 
@@ -74,9 +74,8 @@ def image_classification():
     random_search = sklearn.model_selection.RandomizedSearchCV(
         estimator=model, 
         param_distributions=param_grid,
-        verbose=2,
-        n_iter=4
-
+        verbose=4, n_iter=3, cv=2
+        
         )
     
     random_search.fit(X_train, y_train)
