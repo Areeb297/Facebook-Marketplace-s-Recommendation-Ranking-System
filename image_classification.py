@@ -73,8 +73,10 @@ def image_classification():
 
     random_search = sklearn.model_selection.RandomizedSearchCV(
         estimator=model, 
-        param_distributions=param_grid
-    
+        param_distributions=param_grid,
+        verbose=2,
+        n_iter=4
+
         )
     
     random_search.fit(X_train, y_train)
