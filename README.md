@@ -105,10 +105,10 @@ X = images_to_array('cleaned_images/')
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
 param_grid = [    
-{'penalty' : ['l1', 'l2'],
+{'penalty' : ['l2', 'none'],
 'C' : np.logspace(-4, 4, 20),
-'solver' : ['lbfgs','newton-cg','liblinear'],
-'max_iter' : [100, 1000, 1500]
+'solver' : ['newton-cg','lbfgs', 'sag','saga'], # For multi-classification
+'max_iter' : [300, 1000, 1500],
 }
 ]
 
