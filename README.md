@@ -2,7 +2,7 @@
 
 ## Milestone 1: An overview of the system
 
-> This project works on building and replication a product ranking system of Facebook Marketplace to provide users with the most relevant products based on their search query through using using multimodal pre-traineddeep neural networks such as CNNs using Transfer Learning. The model is a mini implementation of a larger system that Facebook developed and advanced to generate product recommendation rankings for buyers on Facebook Marketplace. Shown below is a flowchart describing the overview of the system encompassing various technologies:
+> This project works on building and closely replicating a product ranking system of Facebook Marketplace to provide users with the most relevant products based on their search query. This is done via a multimodal pre-trained deep neural network using Transfer Learning (Text model + Image model). The model is a mini-implementation of a larger system that Facebook developed to generate product recommendation rankings for buyers on Facebook Marketplace. Shown below is a flowchart describing the overview of the system encompassing various technologies:
 
 ![image](https://user-images.githubusercontent.com/51030860/178149528-8a7c5b0c-3f14-46b0-b708-ff3faf455755.png)
 
@@ -10,36 +10,64 @@ Here is the ![video link](https://www.youtube.com/watch?v=1Z5V2VrHTTA&ab_channel
 
 ## Milestone 2: Cleaning the tabular and image datasets
 
-- In this stage, we perform data cleaning steps for the product and image datasets. Firstly, conncerning the product tabular dataset, we have a pipeline which completes all cleaning steps such as ensuring all null and duplicate values are removed and all data formats are correct e.g., the price column is converted to float and the product creation time is converted to datetime. Regarding the images dataset, we create a pipeline which resizes all the images into one consistent format such that all images have the same number of channels and size. An important point to mention is that the images in the folder are named by their id so we will sort these images first and then apply the image resizing pipeline. Similarly, when we merge both the image and product tabular datasets, we will sort the dataframe by image id which will help us in the classification task.
-
-- Moreover, in order to have only the images that are in the image tabular dataset, first we merge the product and image datasets together, perform all the cleaning steps and then before resize the image, we check whether the id (name of the image file) is in the unique image id's in the tabular dataset. This ensures we have the same number of dimensions when performing image classification. Below is a code snippet that shows how we do it:
+- In this stage, we perform data cleaning steps for the product and image datasets. Firstly, concerning the product tabular dataset, we have built a pipeline which completes all cleaning steps such as ensuring all null and duplicate values are removed and all data formats are correct e.g., the price column is converted to float and the product creation time is converted to datetime. We ensure features like location and product category are converted into 'category' format. Additionally, we clean the text data by removing non-alphanumeric characters and unnecessary whitespaces. We use the pandas library and Regex expression to clean the product dataset as shown below:
 
 ```python
+
+
+def clean_text_data(column, keep_char=None):
+    non_alpha_numeric = column.str.replace('\W', ' ', regex=True).apply(lambda x: x.lower())
+    non_whitespace = non_alpha_numeric.str.replace('\s+', ' ', regex=True)
+    # remove all single characters
+    clean_text = non_whitespace.apply(lambda x: ' '.join([w for w in x.split() if len(w)>1]))
+    if keep_char != None:
+        return clean_text.apply(lambda x: ' '.join(x.split(' ')[0:keep_char])) # keep a certain number of words
+    return clean_text
+
+# We get duplicates with only these columns as our criteria and keep only the first occuring values
+data.drop_duplicates(subset=['product_name', 'location', 'product_description', 'create_time', 'price'], keep='first', inplace=True)
+
+# remove unnecessary columns
+data.drop(columns=['url', 'page_id'], inplace=True)
+
+data['price'] = clean_price(data['price'])
+data['create_time'] = clean_time(data['create_time'])
+
+data['location'] = data['location'].astype('category')
+data['category'] = data['category'].astype('category')
+
+
+data['product_name'] = clean_text_data(data['product_name'], 8)
+data['product_description'] = clean_text_data(data['product_description']
+
+```
+
+- Regarding the images dataset, we also create a pipeline which resizes all the images into one consistent format such that all images have the same number of channels and size (3, 64, 64). As every product can have more than one corresponding image, we need to join the image and product tabular datasets. We merge them after cleaning the product tabular dataset on image_id and we drop all irrelevant columns such as product_id, create_time, bucket_link and image_ref. Next, we see that the images in the image folder are named by their ids. When we loop through the images in the directory, we first check that the image id is first present in our merged dataframe, then we apply our resizing image function, and lastly save these newly resized images into the cleaned_images directory where the image names are their ids. This ensures we have the same number of dimensions when performing image classification
+
+- To summarize, we first merge our data, then we loop through the imagees in the image folder, check that the id exists in the merged dataframe, them apply our resize function, and finally save the new images by their ids in the cleaned_images folder. A code snippet is shown below of how it is done:
+
+```python
+
+merged_data = merge()
+
 # check if cleaned_images exists
 new_path = 'cleaned_images/'
-if not os.path.exists(path+new_path):
+if not os.path.exists(new_path):
     os.makedirs(new_path)
 
-final_size = 90
+final_size = 64
 
-for n, item in enumerate(dirs, 1):
-    if item.split('.')[0] in list(images_data['id'].unique()): # Here we check whether the image id is contained in the merged tabular dataset
+for item in dirs:
+    if item.split('.')[0] in list(merged_data['image_id'].unique()): # the file name of every image (image_id)
         im = Image.open(path + item)
         new_im = resize_image(final_size, im)
-        new_im.save(f'{new_path}{n}_resized.jpg')
+        new_im.save(f'{new_path}{item}')
+
+
 ```
 
-- We use the pandas library and Regex expression to clean the product dataset for example, we only keep alphanumeric characters and remove uncessary spaces as shown below:
-
-```python
-
-non_alpha_numeric = column.str.replace('\W', ' ', regex=True).apply(lambda x: x.lower())
-non_whitespace = non_alpha_numeric.str.replace('\s+', ' ', regex=True)
-# remove all single characters
-clean_text = non_whitespace.apply(lambda x: ' '.join([w for w in x.split() if len(w)>1]))
-```
   
-- For images, we use pillow and os libraries in python where the clean_image_data function takes in the path for the folder containing all the images, opens all the images using a for loop, resizes all of them and saves them into a new directory called cleaned_images. Below is a snippet shown of the process of how we resize all images and having only RGB channels. We only use the final size as 90 as large pixel sizes will increase the machine learning classification model time.
+- For resizing images, we use pillow and os libraries in python where the clean_image_data function takes in the path for the folder containing all the images, opens all the images using a for loop, resizes all of them and saves them into a new directory called cleaned_images. Below is a snippet shown of the process of how we resize all images and having only RGB channels. We only use the final size as 64 as a large pixel sizes will increase the number of predictors and the machine learning classification model time.
   
 ```python
 size = im.size
@@ -48,8 +76,8 @@ new_image_size = tuple([int(x*ratio) for x in size])
 im = im.resize(new_image_size, Image.ANTIALIAS)
 new_im = Image.new("RGB", (final_size, final_size))
 new_im.paste(im, ((final_size-new_image_size[0])//2, (final_size-new_image_size[1])//2))
-```
 
+```
 
 ## Milestone 3: Create simple Machine Learning models
 
