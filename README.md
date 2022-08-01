@@ -170,8 +170,6 @@ random_search = sklearn.model_selection.RandomizedSearchCV(
   <img src="https://user-images.githubusercontent.com/51030860/182227206-cddce56e-0503-47f0-9bd6-007cd2e7d91d.png" alt="Sublime's custom image"/>
 </p>
 
-
-![image](https://user-images.githubusercontent.com/51030860/182227206-cddce56e-0503-47f0-9bd6-007cd2e7d91d.png)
 -  We print the classification report additionally which gives us the precision, recall, and f1-score for each category where we can see that our model performs more confidently when predicting the Home & Garden category, 'Computers & Software' and 'Office Furniture & Equipment'. For future, we can have greater pixel sizes for our images as much of the detail in the images with (64x64) pixels is lost. Lastly, we can exploit further hyperparameter tuning using Grid Search instead of Randomized Search. We can also try other classification algorithms such as XGBoost or Random Forests. Shown below is the code snippet we use to run the model:
 
 ```python
