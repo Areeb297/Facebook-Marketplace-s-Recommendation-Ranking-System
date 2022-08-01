@@ -81,14 +81,16 @@ new_im.paste(im, ((final_size-new_image_size[0])//2, (final_size-new_image_size[
 
 ## Milestone 3: Create simple Machine Learning models
 
-We created two simple ML models using Linear regression and Logistic regression (for classifiation):
+We created two simple ML models using Linear regression (Regression) and Logistic regression (for multi-class classifiation):
 
-- Predicting the product price based on product name, description, and location
-- Predicting product category based on the image dataset converted into numpy arrays
+- Predicting the product price based on product name, description, and location (Linear Regression)
+- Predicting product category based on the image dataset converted into numpy arrays (Logistic Regression)
 
 <ins>1 - Linear Regression model for predicting price (Regression):</ins>
 
-First we split the data into features (name, description, location) and targets (price) to then transform our features using TfidfVectorizer where we convert all the text into weights assigned to each word based on their term frequency. Additionally, we exclude stopwords from our features such as 'the', 'are' etc. This is done to remove unnecessary words from hindering our model performance. Next we have hyperparameters we define for Gridsearch to select the optimal and then lastly we perform linear regression. We do get a terrible RMSE (approx 8000) and r^2 score (approx -0.1) as we have too many features (curse of dimensionality) and so perhaps we can focus on removing further words from our model. Furthermore, we only keep the first 8 words in the product name to avoid having a seriously long name in our analysis. 
+First we split the data into features (name, description, location) and targets (price) to then transforming our features using TfidfVectorizer. We convert all the text into weights assigned to each word based on their term frequency in the whole merged dataframe. Additionally, we exclude stopwords from our features such as 'the', 'are' etc. We do not apply this transformation on the location feature as it is not needed. This process is done to remove unnecessary words from hindering our model performance. 
+
+Next we have hyperparameters we define for Gridsearch to select the optimal such as n_gram range and minimum term frequency. Lastly we perform linear regression. We do get a terrible RMSE (approx 80,000) and r^2 score (-9.37) as we have too many features (curse of dimensionality) and have overparametrized our model. We can potentially focus on removing further words from our model or obtain more data in the future. Furthermore, we only keep the first 8 words in the product name to avoid having a seriously long product name in our analysis. 
 
 ```python
 pipeline = Pipeline(
@@ -98,23 +100,27 @@ pipeline = Pipeline(
         ("lr", LinearRegression())
     ]
 )
+
 # set parameters for the tfidf vectors
 parameters = {
     'tfidf__vector_1__ngram_range': ((1, 1), (1, 2)),
-    'tfidf__vector_2__min_df': (0.001, 0.005),
+    'tfidf__vector_2__min_df': (0.005,  0.2, 0.01),
 
-    'tfidf__vector_2__ngram_range': ((1, 1),(1, 2)),
+    'tfidf__vector_2__ngram_range': ((1,1), (1,2)),
+    'tfidf__vector_1__min_df': (0.2, 0.05, 0.001)
 }
 
+# Find the best hyperparameters for both the feature extraction and regressor
 grid_search = GridSearchCV(pipeline, parameters, n_jobs=-1, verbose=2)
-# split data in to train/test
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.35)
 
+# split data in to train/test
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 grid_search.fit(X_train, y_train)
 
+# calculate RMSE
 rmse = np.sqrt(mean_squared_error(y_test, grid_search.predict(X_test)))
 print(f'RMSE: {rmse}')
-print(f'The r^2 score was: {r2_score(grid_search.predict(X_test), y_test)}')
+print(f'The r^2 score was: {r2_score(y_test, grid_search.predict(X_test))}')
 ```
 <ins>2 - Logistic Regression for predicting product category (Classification):</ins>
 
