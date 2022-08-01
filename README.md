@@ -128,7 +128,9 @@ print(classification_report(y_test, y_pred))
 print(dict(enumerate(df['category'].cat.categories))) # Prints which code corresponds to which category
 ```
 
-## Milestone 4: Create the vision model
+## Milestone 4: Creating a pytorch vision CNN model
+
+## Milestone 5: Using transfer learning and Resnet
 
 ## Milestone 5: Create the text understanding model
 
