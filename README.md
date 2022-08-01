@@ -165,7 +165,7 @@ random_search = sklearn.model_selection.RandomizedSearchCV(
 ```
  
 - The results are that we obtain an accuracy of around 15% which is poor but it is better than random guessing (1/13 ~ 7% accuracy) and gives us a benchmark to compare and improve upon when using deep learning frameworks. We see as shown below that Home & Garden category has the most images so it would make sense that the model performs the best on that category. We see that our image dataset is mostly balanced which indicates no issues regarding imbalanced set of classes when it comes to multiclassification.
-<p align="center">![image](https://user-images.githubusercontent.com/51030860/182227206-cddce56e-0503-47f0-9bd6-007cd2e7d91d.png)</p>
+![image](https://user-images.githubusercontent.com/51030860/182227206-cddce56e-0503-47f0-9bd6-007cd2e7d91d.png)
 -  We print the classification report additionally which gives us the precision, recall, and f1-score for each category where we can see that our model performs more confidently when predicting the Home & Garden category, 'Computers & Software' and 'Office Furniture & Equipment'. For future, we can have greater pixel sizes for our images as much of the detail in the images with (64x64) pixels is lost. Lastly, we can exploit further hyperparameter tuning using Grid Search instead of Randomized Search. We can also try other classification algorithms such as XGBoost or Random Forests. Shown below is the code snippet we use to run the model:
 
 ```python
