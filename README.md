@@ -189,11 +189,11 @@ print(classification_report(y_test, y_pred))
 
 ## Milestone 5: Using transfer learning and Resnet
 
-## Milestone 5: Create the text understanding model
+## Milestone 6: Create the text understanding model
 
-## Milestone 6: Combine the models
+## Milestone 7: Combine the models
 
-## Milestone 7: Configure and deploy the model serving API
+## Milestone 8: Configure and deploy the model serving API
 
 - Does what you have built in this milestone connect to the previous one? If so explain how. What technologies are used? Why have you used them? Have you run any commands in the terminal? If so insert them using backticks (To get syntax highlighting for code snippets add the language after the first backticks).
 
