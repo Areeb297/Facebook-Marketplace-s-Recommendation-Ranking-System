@@ -1,4 +1,3 @@
-import enum
 from PIL import Image
 import pandas as pd
 import os
@@ -41,16 +40,16 @@ def clean_image_data(path):
 
     # check if cleaned_images exists
     new_path = 'cleaned_images/'
-    if not os.path.exists(path+new_path):
+    if not os.path.exists(new_path):
         os.makedirs(new_path)
 
-    final_size = 90
+    final_size = 64
 
-    for n, item in enumerate(dirs, 1):
+    for item in dirs:
         if item.split('.')[0] in list(images_data['id'].unique()):
             im = Image.open(path + item)
             new_im = resize_image(final_size, im)
-            new_im.save(f'{new_path}{n}_resized.jpg')
+            new_im.save(f'{new_path}{item}')
 
 
 if __name__ == '__main__':
