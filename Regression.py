@@ -46,27 +46,31 @@ def regression_func():
         ]
     )
 
+    
+
     # set parameters for the tfidf vectors
     parameters = {
-        'tfidf__vector_1__ngram_range': ((1, 1), (1, 2)),
-        'tfidf__vector_2__min_df': (0.001, 0.005),
+        'tfidf__vector_1__ngram_range': ((1, 1), (1, 2), (1, 3)),
+        'tfidf__vector_2__min_df': (0.0001,  0.005),
 
         'tfidf__vector_2__ngram_range': ((1, 1),(1, 2)),
+        'tfidf__vector_1__min_df': (0.0005,  0.001)
     }
 
-    # Find the best parameters for both the feature extraction and regressor
+    # Find the best hyperparameters for both the feature extraction and regressor
     grid_search = GridSearchCV(pipeline, parameters, n_jobs=-1, verbose=2)
 
 
     # split data in to train/test
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.35)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 
     grid_search.fit(X_train, y_train)
 
     # calculate RMSE
     rmse = np.sqrt(mean_squared_error(y_test, grid_search.predict(X_test)))
+    print(grid_search.best_params_)
     print(f'RMSE: {rmse}')
-    print(f'The r^2 score was: {r2_score(grid_search.predict(X_test), y_test)}')
+    print(f'The r^2 score was: {r2_score(y_test, grid_search.predict(X_test))}')
 
 
 if __name__ == '__main__':
