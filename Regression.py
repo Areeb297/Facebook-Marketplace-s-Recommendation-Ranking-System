@@ -29,7 +29,7 @@ def regression_func():
     # stopwords list to exclude 
     stop = set(stopwords.words('english'))
 
-    tfidf = ColumnTransformer(
+    tfidf = ColumnTransformer(  
 
     [
         ("vector_1", TfidfVectorizer(stop_words=stop), 'product_name'),
