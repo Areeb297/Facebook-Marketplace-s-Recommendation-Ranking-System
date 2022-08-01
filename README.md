@@ -88,9 +88,9 @@ We created two simple ML models using Linear regression (Regression) and Logisti
 
 <ins>1 - Linear Regression model for predicting price (Regression):</ins>
 
-First we split the data into features (name, description, location) and targets (price) to then transforming our features using TfidfVectorizer. We convert all the text into weights assigned to each word based on their term frequency in the whole merged dataframe. Additionally, we exclude stopwords from our features such as 'the', 'are' etc. We do not apply this transformation on the location feature as it is not needed. This process is done to remove unnecessary words from hindering our model performance. 
+- First we split the data into features (name, description, location) and targets (price) to then transforming our features using TfidfVectorizer. We convert all the text into weights assigned to each word based on their term frequency in the whole merged dataframe. Additionally, we exclude stopwords from our features such as 'the', 'are' etc. We do not apply this transformation on the location feature as it is not needed. This process is done to remove unnecessary words from hindering our model performance. 
 
-Next we have hyperparameters we define for Gridsearch to select the optimal such as n_gram range and minimum term frequency. Lastly we perform linear regression. We do get a terrible RMSE (approx 80,000) and r^2 score (-9.37) as we have too many features (curse of dimensionality) and have overparametrized our model. We can potentially focus on removing further words from our model or obtain more data in the future. Furthermore, we only keep the first 8 words in the product name to avoid having a seriously long product name in our analysis. 
+- Next we have hyperparameters we define for Gridsearch to select the optimal such as n_gram range and minimum term frequency. Lastly we perform linear regression. We do get a terrible RMSE (approx 125,000) and r^2 score (-26) as we have too many features (curse of dimensionality) and have overparametrized our model. We can potentially focus on removing further words from our model or obtain more data in the future. We can try other models like random forest regressor but they take a long time with so many features and hence may not be feasible at the moment. Furthermore, we only keep the first 8 words in the product name to avoid having a seriously long product name in our analysis. 
 
 ```python
 pipeline = Pipeline(
@@ -124,43 +124,60 @@ print(f'The r^2 score was: {r2_score(y_test, grid_search.predict(X_test))}')
 ```
 <ins>2 - Logistic Regression for predicting product category (Classification):</ins>
 
-Firstly, we obtain the images from the cleaned_images folder and convert to numpy array format and reshape them as 2D to be able to store the images as a dataframe. The total number was 12,600 where we saved the dataframe as a pickle file to prevent the array format of images being changed after we reload the dataframe. Next we sorted the merged dataframe by image id so we have the same ordering as the files in the cleaned_images folder, we perform train-test split and use logistic regression for classification for all 13 categories. We obtain around 8.5% accuracy which is poor but it gives us a benchmark to compare and improve upon when using deep learning frameworks. We print the classification report additionally which gives us the precision, recall, and f1-score for each category where we can see that our model performs best when predicting the Home & Garden category. For future, we can have greater pixel sizes for our images as much of the detail in the images with (64x64) pixels is lost. Lastly, we can exploit further hyperparameter tuning using Grid Search instead of Randomized Search, cross-validation and potentially regularization to reduce variance in the data and reduce overfitting. Shown below is the code snippet we use to run the model:
+- Firstly, in our merge_data.py file, we create another function which loops through the images from the cleaned_images folder, converts them into numpy array format, takes the image id from the image file, checks which row of our merged dataframe corresponds to that image id, then places each image_array as a list in the correct row under the column 'image_array'. 
+
+- The total number of observations is 12,600 where we save this dataframe as a pickle file to prevent the array format of images being changed after we reload the dataframe. Next, we load this pickle file in our image_classification python file, encode our categories into numbers, save the encoding, take the image_array column as our features where we flatten each row, take the encoded categories as our targets, perform train-test split and use logistic regression for classification for all 13 categories as shown below:
 
 ```python
-df.sort_values(by='id', inplace=True) # So that the order of the images in both the tabular and non-tabular are the same
-df.category = df.category.apply(lambda x: x.split('/')[0]) # Get the category most closest to the product (the one on the most left)
-df.category = df.category.astype('category')
-df['category_codes'] = df.category.cat.codes
+file = open("image_dataframe.pkl",'rb')
+df = pickle.load(file)
+
+df.category = df.category.apply(lambda x: x.split('/')[0]) # Retain only the first category
+
+decode, df = category_encode_decode(df)
 
 y = df.category_codes # target variable
-X = images_to_array('cleaned_images/')
+X = df['image_array'].apply(lambda x: x.flatten())
 
+X_train, X_test, y_train, y_test = train_test_split(list(X), y, test_size=0.3, random_state=42)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+```
 
-param_grid = [    
-{'penalty' : ['l2', 'none'],
-'C' : np.logspace(-4, 4, 20),
-'solver' : ['newton-cg','lbfgs', 'sag','saga'], # For multi-classification
-'max_iter' : [300, 1000, 1500],
-}
-]
+ - We use grid search to optimize hyperparameters of the logistic regression function such as the max iterations, regularization (C hyperparameter) etc. We use the lbfgs solver as it is suitable for multiclassification. We did not use other solvers as they take a lot of time to run. Instead of Grid Search, we exploit randomized search to save time. All of this setup is shown below in code:
+
+```python
+  param_grid = [    
+    {'penalty' : ['l2'],
+    'C' : np.logspace(-4, 4, 30),
+    'solver' : ['lbfgs'], # For multi-classification (newton-cg, sag, saga, lbfgs)
+    'max_iter' : [300, 600, 1200]
+    }
+    ]
 
 model = LogisticRegression()
 
 random_search = sklearn.model_selection.RandomizedSearchCV(
     estimator=model, 
-    param_distributions=param_grid
+    param_distributions=param_grid,
+    verbose=4, n_iter=2, cv=3
 
     )
+```
+ 
+- The results are that we obtain an accuracy of around 15% which is poor but it is better than random guessing (1/13 ~ 7% accuracy) and gives us a benchmark to compare and improve upon when using deep learning frameworks. We print the classification report additionally which gives us the precision, recall, and f1-score for each category where we can see that our model performs more confidently when predicting the Home & Garden category, 'Computers & Software' and 'Office Furniture & Equipment'. For future, we can have greater pixel sizes for our images as much of the detail in the images with (64x64) pixels is lost. Lastly, we can exploit further hyperparameter tuning using Grid Search instead of Randomized Search. We can also try other classification algorithms such as XGBoost or Random Forests. Shown below is the code snippet we use to run the model:
 
+```python
 random_search.fit(X_train, y_train)
 y_pred = random_search.predict(X_test)
 
+print(random_search.best_params_)
 print(f'The accuracy of our predictions: {round(accuracy_score(y_test, y_pred), 5) * 100} %')
 print(classification_report(y_test, y_pred))
-print(dict(enumerate(df['category'].cat.categories))) # Prints which code corresponds to which category
+
 ```
+
+- The results are as follows:
+> Best parameters: {'solver': 'lbfgs', 'penalty': 'l2', 'max_iter': 300, 'C': 0.0012689610031679222}, the accuracy of our predictions: 15.317 %
 
 ## Milestone 4: Creating a pytorch vision CNN model
 
