@@ -42,7 +42,7 @@ data['product_description'] = clean_text_data(data['product_description']
 
 ```
 
-- Regarding the images dataset, we also create a pipeline which resizes all the images into one consistent format such that all images have the same number of channels and size (3, 64, 64). As every product can have more than one corresponding image, we need to join the image and product tabular datasets. We merge them after cleaning the product tabular dataset on image_id and we drop all irrelevant columns such as product_id, create_time, bucket_link and image_ref. Next, we see that the images in the image folder are named by their ids. When we loop through the images in the directory, we first check that the image id is first present in our merged dataframe, then we apply our resizing image function, and lastly save these newly resized images into the cleaned_images directory where the image names are their ids. This ensures we have the same number of dimensions when performing image classification
+- Regarding the images dataset, we also create a pipeline which resizes all the images into one consistent format such that all images have the same number of channels and size (3, 100, 100). As every product can have more than one corresponding image, we need to join the image and product tabular datasets. We merge them after cleaning the product tabular dataset on image_id and we drop all irrelevant columns such as product_id, create_time, bucket_link and image_ref. Next, we see that the images in the image folder are named by their ids. When we loop through the images in the directory, we first check that the image id is first present in our merged dataframe, then we apply our resizing image function, and lastly save these newly resized images into the cleaned_images directory where the image names are their ids. This ensures we have the same number of dimensions when performing image classification
 
 - To summarize, we first merge our data, then we loop through the imagees in the image folder, check that the id exists in the merged dataframe, them apply our resize function, and finally save the new images by their ids in the cleaned_images folder. A code snippet is shown below of how it is done:
 
@@ -55,7 +55,7 @@ new_path = 'cleaned_images/'
 if not os.path.exists(new_path):
     os.makedirs(new_path)
 
-final_size = 64
+final_size = 100
 
 for item in dirs:
     if item.split('.')[0] in list(merged_data['image_id'].unique()): # the file name of every image (image_id)
@@ -67,7 +67,7 @@ for item in dirs:
 ```
 
   
-- For resizing images, we use pillow and os libraries in python where the clean_image_data function takes in the path for the folder containing all the images, opens all the images using a for loop, resizes all of them and saves them into a new directory called cleaned_images. Below is a snippet shown of the process of how we resize all images and having only RGB channels. We only use the final size as 64 as a large pixel sizes will increase the number of predictors and the machine learning classification model time.
+- For resizing images, we use pillow and os libraries in python where the clean_image_data function takes in the path for the folder containing all the images, opens all the images using a for loop, resizes all of them and saves them into a new directory called cleaned_images. Below is a snippet shown of the process of how we resize all images and having only RGB channels. We only use the final size as 100 as a larger pixel size will increase the number of predictors and the machine learning classification model time.
   
 ```python
 size = im.size
@@ -170,7 +170,7 @@ random_search = sklearn.model_selection.RandomizedSearchCV(
   <img src="https://user-images.githubusercontent.com/51030860/182227206-cddce56e-0503-47f0-9bd6-007cd2e7d91d.png" alt="Sublime's custom image"/>
 </p>
 
--  We print the classification report additionally which gives us the precision, recall, and f1-score for each category where we can see that our model performs more confidently when predicting the Home & Garden category, 'Computers & Software' and 'Office Furniture & Equipment'. For future, we can have greater pixel sizes for our images as much of the detail in the images with (64x64) pixels is lost. Lastly, we can exploit further hyperparameter tuning using Grid Search instead of Randomized Search. We can also try other classification algorithms such as XGBoost or Random Forests. Shown below is the code snippet we use to run the model:
+-  We print the classification report additionally which gives us the precision, recall, and f1-score for each category where we can see that our model performs more confidently when predicting the Home & Garden category, 'Computers & Software' and 'Office Furniture & Equipment'. For future, we can have greater pixel sizes for our images as much of the detail in the images with (100x100) pixels is lost. Lastly, we can exploit further hyperparameter tuning using Grid Search instead of Randomized Search. We can also try other classification algorithms such as XGBoost or Random Forests. Shown below is the code snippet we use to run the model:
 
 ```python
 random_search.fit(X_train, y_train)
