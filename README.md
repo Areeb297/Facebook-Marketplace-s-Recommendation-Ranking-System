@@ -183,7 +183,7 @@ print(classification_report(y_test, y_pred))
 ```
 
 - The results are as follows:
-> Best parameters: {'solver': 'lbfgs', 'penalty': 'l2', 'max_iter': 300, 'C': 0.0012689610031679222}, the accuracy of our predictions: 15.317 %
+> Best parameters: {'solver': 'lbfgs', 'penalty': 'l2', 'max_iter': 300, 'C': 0.01610262027560939}, the accuracy of our predictions: 15.026 %
 
 ## Milestone 4: Creating a pytorch vision CNN model
 
