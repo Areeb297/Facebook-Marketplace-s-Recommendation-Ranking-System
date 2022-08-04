@@ -16,7 +16,7 @@ def resize_image_CNN(path):
     min_width = 100000
     min_height = 100000
     list_img = glob.glob('images/*.jpg')
-
+    # check if cleaned_images exists
     new_path = path
     if not os.path.exists(new_path): # if path exists then we will not run the function again
         os.makedirs(new_path)
@@ -35,17 +35,14 @@ def resize_image_CNN(path):
         min_height = min(min_height, min_width)
         min_width =  min_height
 
-
-        # check if cleaned_images exists
-
         for img in list_img:
 
             new_img = Image.open(img)
-            # Check RGB channels 
+            # check RGB color/mode
             if new_img.mode != 'RGB':
-                new_img.mode = 'RGB'
-            resized_img = new_img.resize((min_width, min_height))
+                new_img = new_img.convert('RGB')
 
+            resized_img = new_img.resize((min_width, min_height))
             path = img.split('\\')[1]
             resized_img.save(f'{new_path}{path}')
 
