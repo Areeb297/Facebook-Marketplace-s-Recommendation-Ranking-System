@@ -42,34 +42,75 @@ data['product_description'] = clean_text_data(data['product_description']
 
 ```
 
-- Regarding the images dataset, we also create a pipeline which resizes all the images into one consistent format such that all images have the same number of channels and size (3, 100, 100). As every product can have more than one corresponding image, we need to join the image and product tabular datasets. We merge them after cleaning the product tabular dataset on image_id and we drop all irrelevant columns such as product_id, create_time, bucket_link and image_ref. Next, we see that the images in the image folder are named by their ids. When we loop through the images in the directory, we first check that the image id is first present in our merged dataframe, then we apply our resizing image function, and lastly save these newly resized images into the cleaned_images directory where the image names are their ids. This ensures we have the same number of dimensions when performing image classification
+- Regarding the images dataset, we also create a pipeline which resizes all the images into one consistent format such that all images have the same number of channels and size (3, 50, 50) for the sklearn dataset and for the CNN dataset, we obtain images of size (3, 155, 155) as this was based on finding minimum height and width from the image dataset and using the lowest number from them. 
 
-- To summarize, we first merge our data, then we loop through the imagees in the image folder, check that the id exists in the merged dataframe, them apply our resize function, and finally save the new images by their ids in the cleaned_images folder. A code snippet is shown below of how it is done:
+As every product can have more than one corresponding image, we need to join the image and product tabular datasets. We merge them after cleaning the product tabular dataset on image_id and we drop all irrelevant columns such as product_id, create_time, bucket_link and image_ref.
+
+- To build the cleaned images folder, we loop through the images in the image folder, apply our resize function by adding the image onto a rgb background of pixel size 50 and resizing our image, and finally save the new images by their ids in the cleaned_images folder. For building the CNN image dataset, we use a different approach where we find the minimum size of all the images and change the aspect ratio to that (155x155) and then we ensure the channel is RGB. A code snippet is shown below of how it is done:
 
 ```python
 
-merged_data = merge()
+# For the scikit learn 50x50 dataset, we use:
 
-# check if cleaned_images exists
-new_path = 'cleaned_images/'
-if not os.path.exists(new_path):
-    os.makedirs(new_path)
+def resize_image_ML(final_size, im):
+    size = im.size
+    ratio = float(final_size) / max(size) 
+    new_image_size = tuple([int(x*ratio) for x in size]) 
+    im = im.resize(new_image_size, Image.LANCZOS)
+    new_im = Image.new("RGB", (final_size, final_size)) # new_img_size = (int(ratio * prev_size[0]), int(ratio * prev_size[1]))
+    new_im.paste(im, ((final_size-new_image_size[0])//2, (final_size-new_image_size[1])//2))
+    return new_im
 
-final_size = 100
 
-for item in dirs:
-    if item.split('.')[0] in list(merged_data['image_id'].unique()): # the file name of every image (image_id)
-        im = Image.open(path + item)
-        new_im = resize_image(final_size, im)
-        new_im.save(f'{new_path}{item}')
+def clean_image_data_sklearn(path):
+    list_img = glob.glob('images/*.jpg') # Get all files with file type .jpg
+    # check if cleaned_images exists
+    new_path = path
+    if not os.path.exists(new_path):
+        os.makedirs(new_path)
 
+        final_size = 50 # We will use 50x50 images when using Sklearn ML libraries
+
+        for item in list_img:
+            im = Image.open(item)
+            new_im = resize_image_ML(final_size, im)
+            file_name = item.split('\\')[1]
+            new_im.save(f'{new_path}{file_name}')
+            
+            
+# For the CNN dataset, we use:
+min_width = 100000
+min_height = 100000
+
+for img in list_img:
+
+    size = Image.open(img).size
+    width, height = size[0], size[1]
+
+    if width < min_width:
+        min_width = width
+
+    if height < min_height:
+        min_height = height
+
+min_height = min(min_height, min_width)
+min_width =  min_height
+
+# check rgb
+for img in list_img:
+
+    new_img = Image.open(img)
+    # check RGB color/mode
+    if new_img.mode != 'RGB':
+        new_img = new_img.convert('RGB')
 
 ```
 
   
-- For resizing images, we use pillow and os libraries in python where the clean_image_data function takes in the path for the folder containing all the images, opens all the images using a for loop, resizes all of them and saves them into a new directory called cleaned_images. Below is a snippet shown of the process of how we resize all images and having only RGB channels. We only use the final size as 100 as a larger pixel size will increase the number of predictors and the machine learning classification model time.
+- For resizing the sklearn images, we use pillow and os libraries in python where the clean_image_data function opens all the images using a for loop, resizes all of them and saves them into a new directory called cleaned_images_sklearn. Below is a snippet shown of the process of how we resize all images and having only RGB channels. We only use the final size as 50 as a larger pixel size will increase the number of predictors and the sklearn machine learning classification model time by a huge amount as it will too much memory. For the CNN, we can use large image sizes.
   
 ```python
+final_size = 50
 size = im.size
 ratio = float(final_size) / max(size) 
 new_image_size = tuple([int(x*ratio) for x in size]) 
