@@ -1,8 +1,9 @@
-import merge_data
+from merge_data import merge_im_array
 import numpy as np
 import os
+import seaborn as sns 
+import matplotlib.pyplot as plt
 
-from PIL import Image
 import pandas as pd
 import pickle
 
@@ -30,29 +31,31 @@ def category_encode_decode(dataframe):
     return dict(enumerate(dataframe['category'].cat.categories)), dataframe
 
 def image_classification():
-    """This function gets the product and image tabular data merged together, converts the category into numerical codes,
+    """This function gets the sklearn merged product and image tabular dataset from pickle file, converts the category into numerical codes,
     takes the category as target, splits the data into traning and testing and use logistic regression to predict the 
     product category based on the image data, printing the accuracy score and classification report
     """
-    if not os.path.exists('image_dataframe.pkl'):
-        merge_data.merge_im_array()
+    if not os.path.exists('sklearn_merged_dataframe.pkl'):
+        merge_im_array('cleaned_images_sklearn/', 'sklearn_merged_dataframe.pkl')
 
-    file = open("image_dataframe.pkl",'rb')
-    df = pickle.load(file)
+    df = pd.read_pickle('sklearn_merged_dataframe.pkl')
 
     df.category = df.category.apply(lambda x: x.split('/')[0]) # Retain only the first category
 
     decode, df = category_encode_decode(df)
-    with open('decoder.pkl', 'wb') as file:
+    with open('sklearn_decoder.pkl', 'wb') as file:
         pickle.dump(decode, file)
 
     y = df.category_codes # target variable
-    with open('image_targets.pkl', 'wb') as file:
+    with open('sklearn_targets.pkl', 'wb') as file:
         pickle.dump(y, file)
+
+    sns.countplot(y=df.category)
+    plt.show()
 
     X = df['image_array'].apply(lambda x: x.flatten())
 
-    with open('features.pkl', 'wb') as file:
+    with open('sklearn_features.pkl', 'wb') as file:
         pickle.dump(X, file)
 
     X_train, X_test, y_train, y_test = train_test_split(list(X), y, test_size=0.3, random_state=42)
@@ -61,7 +64,7 @@ def image_classification():
     {'penalty' : ['l2'],
     'C' : np.logspace(-4, 4, 30),
     'solver' : ['lbfgs'], # For multi-classification (newton-cg, sag, saga)
-    'max_iter' : [300, 600, 1200],
+    'max_iter' : [300, 400],
 
     }
     ]
@@ -71,7 +74,7 @@ def image_classification():
     random_search = sklearn.model_selection.RandomizedSearchCV(
         estimator=model, 
         param_distributions=param_grid,
-        verbose=4, n_iter=2, cv=3
+        verbose=4, n_iter=2, cv=2
         
         )
 
