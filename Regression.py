@@ -21,7 +21,6 @@ def regression_func():
     """
     # We get the cleaned product tabular data from the clean_tabular_data python script
     product_data = clean_tabular_data.get_data_pipeline()
-
     # Features
     X = product_data[['product_name', 'product_description', 'location']]
     y = product_data['price']
