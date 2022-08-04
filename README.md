@@ -150,7 +150,7 @@ X_train, X_test, y_train, y_test = train_test_split(list(X), y, test_size=0.3, r
     {'penalty' : ['l2'],
     'C' : np.logspace(-4, 4, 30),
     'solver' : ['lbfgs'], # For multi-classification (newton-cg, sag, saga, lbfgs)
-    'max_iter' : [300, 600, 1200]
+    'max_iter' : [300, 400]
     }
     ]
 
@@ -159,18 +159,18 @@ model = LogisticRegression()
 random_search = sklearn.model_selection.RandomizedSearchCV(
     estimator=model, 
     param_distributions=param_grid,
-    verbose=4, n_iter=2, cv=3
+    verbose=4, n_iter=2, cv=2
 
     )
 ```
  
-- The results are that we obtain an accuracy of around 15% which is poor but it is better than random guessing (1/13 ~ 7% accuracy) and gives us a benchmark to compare and improve upon when using deep learning frameworks. We see as shown below that Home & Garden category has the most images so it would make sense that the model performs the best on that category. We see that our image dataset is mostly balanced which indicates no issues regarding imbalanced set of classes when it comes to multiclassification.
+- The results are that we obtain an accuracy of around 15% which is poor but it is better than random guessing (1/13 ~ 7% accuracy) and gives us a benchmark to compare and improve upon when using deep learning frameworks. The Sklearn models are not designed to classify images so we expected poor performance. We see as shown below that Home & Garden category has the most images so it would make sense that the model performs the best on that category. We see that our image dataset is mostly balanced which indicates no issues regarding imbalanced set of classes when it comes to multiclassification.
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/51030860/182227206-cddce56e-0503-47f0-9bd6-007cd2e7d91d.png" alt="Sublime's custom image"/>
 </p>
 
--  We print the classification report additionally which gives us the precision, recall, and f1-score for each category where we can see that our model performs more confidently when predicting the Home & Garden category, 'Computers & Software' and 'Office Furniture & Equipment'. For future, we can have greater pixel sizes for our images as much of the detail in the images with (100x100) pixels is lost. Lastly, we can exploit further hyperparameter tuning using Grid Search instead of Randomized Search. We can also try other classification algorithms such as XGBoost or Random Forests. Shown below is the code snippet we use to run the model:
+-  We print the classification report additionally which gives us the precision, recall, and f1-score for each category where we can see that our model performs more confidently when predicting the Home & Garden category, 'Computers & Software' and 'Office Furniture & Equipment'. For future, we can can exploit further hyperparameter tuning using Grid Search instead of Randomized Search and try other hyperparameters if we want to experiment further with sklearn. Additionally, we can also try other classification algorithms such as XGBoost or Random Forests. Shown below is the code snippet we use to run the model:
 
 ```python
 random_search.fit(X_train, y_train)
@@ -183,7 +183,7 @@ print(classification_report(y_test, y_pred))
 ```
 
 - The results are as follows:
-> Best parameters: {'solver': 'lbfgs', 'penalty': 'l2', 'max_iter': 300, 'C': 0.01610262027560939}, the accuracy of our predictions: 15.026 %
+> Best parameters: {'solver': 'lbfgs', 'penalty': 'l2', 'max_iter': 400, 'C': 2.592943797404667}, the accuracy of our predictions: 14.74 %
 
 ## Milestone 4: Creating a pytorch vision CNN model
 
