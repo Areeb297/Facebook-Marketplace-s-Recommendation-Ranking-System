@@ -81,13 +81,12 @@ def get_data_pipeline():
 
     # Import data
     data = get_tabular_data('Products.csv', '\n').iloc[:, 1:] # We avoid the Unnamed: 0 column
-    # We get duplicates with only these columns as our criteria and keep only the first occuring values
-    data.drop_duplicates(subset=['product_name', 'location', 'product_description', 'create_time', 'price'], keep='first', inplace=True)
-
     # remove unnecessary column
     data.drop(columns=['url', 'page_id'], inplace=True)
 
     data['price'] = clean_price(data['price'])
+
+    data.rename(columns={'create_time\r': 'create_time'}, inplace=True)
     data['create_time'] = clean_time(data['create_time'])
 
     data['location'] = data['location'].astype('category')
@@ -96,6 +95,9 @@ def get_data_pipeline():
 
     data['product_name'] = clean_text_data(data['product_name'], 8)
     data['product_description'] = clean_text_data(data['product_description'])
+
+    # We get duplicates with only these columns as our criteria and keep only the first occuring values
+    data.drop_duplicates(subset=['product_name', 'location', 'product_description', 'create_time', 'price'], keep='first', inplace=True)
 
     # renmae id to product_id
     data.rename(columns={'id': 'product_id'}, inplace=True)
