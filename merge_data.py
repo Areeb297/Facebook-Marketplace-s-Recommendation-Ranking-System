@@ -24,27 +24,34 @@ def merge():
 
     return df
 
-def merge_im_array():
+def merge_im_array(path, filename):
     """This function gets the images from the cleaned_images folder, converts them to an array and merges them into the 
     main (merged) dataframe whilst also checking that the each image array corresponds to the correct image id
+
+    Args:
+        path (str): Path to where the image files are located
+        filename (str): Name of pickle file where merged dataframe is going to be save
     """
 
     data = merge()
-    dirs = os.listdir('cleaned_images/')
+    dirs = os.listdir(path)
 
     data['image_array'] = 'None' # initalize empty column in dataframe
 
-    for item in dirs:
-        
-        image = Image.open('cleaned_images/' + item)
-        arr_im = np.asarray(image)
-        data['image_array'].loc[data['image_id'] == item[:-4]] = [arr_im]
+    if not os.path.exists(filename): # Check if one file exists already to see if we already have run this script
+        for item in dirs:
+            if item[:-4] in data['image_id'].values:
+                image = Image.open(path + item)
+                arr_im = np.asarray(image)
+                data['image_array'].loc[data['image_id'] == item[:-4]] = [arr_im]
 
-    with open('image_dataframe.pkl', 'wb') as file:
-        pickle.dump(data, file)
+
+        with open(filename, 'wb') as file:
+            pickle.dump(data, file)
 
 
 if __name__ == '__main__':
-    merge_im_array()
+    merge_im_array('cleaned_images_sklearn/', 'sklearn_merged_dataframe.pkl')
+    merge_im_array('cleaned_images/', 'CNN_merged_dataframe.pkl')
 
 
