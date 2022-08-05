@@ -323,7 +323,7 @@ for epoch in tqdm(range(epochs+1)):
 Moreover, shown below are the training and validation loss plots from tensorboard which clearly shows the trend of loss decreasing with every increasing epoch:
 
 <p align="center">
-<img src='https://user-images.githubusercontent.com/51030860/183224428-2679988f-8885-4939-acbd-07149619f165.png'>
+<img src='https://user-images.githubusercontent.com/51030860/183224538-728fa7d0-b2e0-47dc-9fbc-e7559a1160b4.png'>
 </p>
 
 
