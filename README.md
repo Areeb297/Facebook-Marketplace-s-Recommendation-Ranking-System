@@ -231,9 +231,11 @@ print(classification_report(y_test, y_pred))
 - The results are as follows:
 > Best parameters: {'solver': 'lbfgs', 'penalty': 'l2', 'max_iter': 400, 'C': 2.592943797404667}, the accuracy of our predictions: 14.74 %
 
-## Milestone 4: Creating a pytorch vision CNN model
+## Milestone 4: Creating a basic pytorch vision CNN model
 
-## Milestone 5: Using transfer learning and Resnet
+- 
+
+## Milestone 5: Implementing transfer learning and Resnet50
 
 ## Milestone 6: Create the text understanding model
 
