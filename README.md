@@ -233,7 +233,99 @@ print(classification_report(y_test, y_pred))
 
 ## Milestone 4: Creating a basic pytorch vision CNN model
 
-- 
+- After testing with sklearn logistic regression, we use a CNN deep neural network to see our performance on the images we saved in higher pixel dimension (3x155x155). We use 3 convolutional layers, having some max pooling of size 2x2 and connected with ReLU activation functions with a softmax function at the end to output probabilities of each class. The CNN class is shown below:
+
+```python
+random_search.fit(X_train, y_train)
+y_pred = random_search.predict(X_test)
+
+print(random_search.best_params_)
+print(f'The accuracy of our predictions: {round(accuracy_score(y_test, y_pred), 5) * 100} %')
+print(classification_report(y_test, y_pred))
+
+```python
+
+class CNN(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        # Declaring the Architecture
+        self.layers = torch.nn.Sequential(
+            torch.nn.Conv2d(3, 200, 5, 2), # Kernel size 7 with stride 2
+            torch.nn.MaxPool2d(4,4),
+            torch.nn.Dropout(p=0.1),
+            torch.nn.ReLU(),
+            
+            torch.nn.Conv2d(200, 100, 3),
+            # torch.nn.MaxPool2d(2, 2), # Max pooling (2, 2) filter
+            torch.nn.Dropout(p=0.1),
+            torch.nn.ReLU(),
+
+            torch.nn.Conv2d(100, 50, 3),
+            torch.nn.MaxPool2d(2, 2),
+            torch.nn.Dropout(p=0.3),
+            torch.nn.ReLU(),
+
+            torch.nn.Flatten(),
+            torch.nn.Linear(2450, 100),
+            torch.nn.Linear(100, 13), #  Predicting 13 product categories
+            torch.nn.Softmax(dim=1)
+        )
+```
+To obtain the relevant data, we read in the CNN merged dataframe, split the image array and category columns as features and targets respectively after flattening the image array column, and we then create a Product Dataset class which converts the features and labels into tensor format, normalizes the 3 colour channels, and outputs features and targets as a tuple. We split the data into training, validation, and testing where validation is used for early stopping in order to prevent overfitting of the data. Additionally, apart from defining functions and classes for employing early stopping and calculating training, validation loss and testing accuracy, we use the tensorboard library to plot graphs of the validation and training losses to visually inspect the change in loss with respect to every batch or epoch. Lastly, we do not expect a high accuracy as we only run our model for 20 epochs and to learn the patterns in our image dataset would require hours of training with multiple GPUs. 
+
+Thus, after running the model, we only achieve an accuracy of 10% on the testing set which is extremely poor. The solution to this problem would be to utilize transfer learning using a pretrained model such as Resnet50 where more on this will be discussed in the next milestone. Shown below are code snippets from the basic_CNN_classification.py file displaying what steps our train function goes through to train model parameters based on cross entropy loss (multiclassification):
+
+```python
+ # Early stopping
+early_stopping = EarlyStopping(patience=6)
+last_loss = np.inf
+# patience = 2
+# triggertimes = 0
+
+optimiser = torch.optim.SGD(model.parameters(), lr=0.009)
+# weight decay adds penalty to loss function, shrinks weights during backpropagation to prevent overfitting and exploding gradients
+batch_idx = 0
+
+for epoch in tqdm(range(epochs+1)):
+    loss_per_epoch = 0
+    model.train()
+    for i, batch in enumerate(train_loader):
+        features, labels = batch
+        features, labels = features.to(device), labels.to(device)
+        prediction = model(features)
+        loss = F.cross_entropy(prediction, labels)
+        loss.backward()
+
+        if i % 10 == 0:
+            print(f'Loss: {loss.item()}') # print loss every 10th value in batch
+
+        optimiser.step()
+        optimiser.zero_grad() # update model parameters or weights
+        # exp_lr_scheduler.step()
+        writer.add_scalar('Training Loss', loss.item(), batch_idx)
+        loss_per_epoch += loss.item()
+        batch_idx += 1
+
+    print(f'epoch number {epoch} with average loss: {loss_per_epoch / len(train_loader)}')
+
+
+    # Early stopping
+    validation_loss = validation(model, device, valid_loader, F.cross_entropy) 
+    early_stopping(last_loss, validation_loss)
+    last_loss = validation_loss
+
+
+    if early_stopping.early_stop:
+        print("We are at epoch:", epoch) # stop if model overfits (validation loss continues to increase)
+        return model
+
+```
+Moreover, shown below are the training and validation loss plots from tensorboard which clearly shows the trend of loss decreasing with every increasing epoch:
+
+![image](https://user-images.githubusercontent.com/51030860/183224204-aec57bc8-54e3-4542-ba33-e23333b440d1.png)
+![image](https://user-images.githubusercontent.com/51030860/183224211-60b09527-d3ec-4a80-b499-5519b3eb8878.png)
+
+
 
 ## Milestone 5: Implementing transfer learning and Resnet50
 
