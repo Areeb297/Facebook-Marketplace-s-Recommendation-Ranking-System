@@ -328,8 +328,8 @@ Moreover, shown below are the training and validation loss plots from tensorboar
 
 Results:
 
-> Epoch number 20 with average loss: 2.5741783587012703
-> 100%|██████████| 21/21 [05:32<00:00, 15.83s/it]
+> Epoch number 20 with average loss: 2.5741783587012703 \
+> 100%|██████████| 21/21 [05:32<00:00, 15.83s/it] \
 > Accuracy of the network on the test images: 10.0 %
 
 
