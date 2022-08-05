@@ -326,7 +326,11 @@ Moreover, shown below are the training and validation loss plots from tensorboar
 <img src='https://user-images.githubusercontent.com/51030860/183224538-728fa7d0-b2e0-47dc-9fbc-e7559a1160b4.png'>
 </p>
 
-> epoch number 20 with average loss: 2.5741783587012703, 100%|██████████| 21/21 [05:32<00:00, 15.83s/it], accuracy of the network on the test images: 10.0 %
+Results:
+
+> Epoch number 20 with average loss: 2.5741783587012703
+> 100%|██████████| 21/21 [05:32<00:00, 15.83s/it]
+> Accuracy of the network on the test images: 10.0 %
 
 
 ## Milestone 5: Implementing transfer learning and Resnet50
