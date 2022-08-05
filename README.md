@@ -322,9 +322,10 @@ for epoch in tqdm(range(epochs+1)):
 ```
 Moreover, shown below are the training and validation loss plots from tensorboard which clearly shows the trend of loss decreasing with every increasing epoch:
 
-![image](https://user-images.githubusercontent.com/51030860/183224204-aec57bc8-54e3-4542-ba33-e23333b440d1.png)
-![image](https://user-images.githubusercontent.com/51030860/183224211-60b09527-d3ec-4a80-b499-5519b3eb8878.png)
-
+<p align="center">
+<img src='https://user-images.githubusercontent.com/51030860/183224251-ba96272f-c4a0-44e5-b903-efe2a6814439.png'>
+<img src='https://user-images.githubusercontent.com/51030860/183224211-60b09527-d3ec-4a80-b499-5519b3eb8878.png'>
+</p>
 
 
 ## Milestone 5: Implementing transfer learning and Resnet50
