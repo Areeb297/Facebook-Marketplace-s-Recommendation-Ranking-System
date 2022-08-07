@@ -249,7 +249,8 @@ def train(model, device, train_loader, valid_loader, epochs=10):
     eval_path = 'model_evaluation'
     model_filename = f'model_{timestamp}'
     model_path = f'{eval_path}/{model_filename}'
-    paths = [eval_path, model_path]
+    final_models_path = 'final_models'
+    paths = [eval_path, model_path, final_models_path]
     
     for path in paths:
         if not os.path.exists(path):
@@ -329,8 +330,9 @@ def train(model, device, train_loader, valid_loader, epochs=10):
         print(f'Epoch {epoch} - loss: {avg_loss_epoch:.4f} \naccuracy: {epoch_acc:.4f}%\
 \nval_loss: {validation_loss} \nval_accuracy: {val_acc:.4f}%')
         
-        if val_acc > 70:
+        if val_acc > 60:
             print('Desired accuracy reached')
+            torch.save({'model_state_dict': copy.deepcopy(model.state_dict())}, f'{final_models_path}/image_model.pt')
             return model
 
         if early_stopping.early_stop:
@@ -381,6 +383,6 @@ if __name__ == '__main__':
 
         model = CNN()
         model.to(device)
-        model_cnn = train(model, device, train_loader, valid_loader, epochs=50)
+        model_cnn = train(model, device, train_loader, valid_loader, epochs=100)
         acc = test_accuracy(test_loader, device, model_cnn)
         print('Accuracy of the network on the test images: {} %'.format(acc))
