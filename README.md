@@ -233,7 +233,36 @@ print(classification_report(y_test, y_pred))
 
 ## Milestone 4: Creating a basic pytorch vision CNN model
 
-- After testing with sklearn logistic regression, we use a CNN deep neural network to see our performance on the images we saved in higher pixel dimension (3x155x155). We use 3 convolutional layers, having some max pooling of size 2x2 and connected with ReLU activation functions with a softmax function at the end to output probabilities of each class. The CNN class is shown below:
+- After testing with sklearn logistic regression, we use a CNN deep neural network to see our performance on the images we saved in higher pixel dimension (3x155x155). Firstly, we split the dataset into features and targets using the generate_features_targets function where we save the encoding of the targets/product categories into numbers to be able to decode the outputs afterward. We save the decoder file as image_decoder.pkl along with the feature and target files (pickle file format) as shown below:
+
+
+```python
+
+def generate_features_targets():
+    if not os.path.exists('CNN_merged_dataframe.pkl'):
+        merge_im_array('cleaned_images/', 'CNN_merged_dataframe.pkl') # module from merge_data.py to merge the image arrays into the main dataframe
+
+
+    if not os.path.exists('image_decoder.pkl'): # checks if the features pickle exists to see if we already ran this function
+        df = pd.read_pickle('CNN_merged_dataframe.pkl')
+        df.category = df.category.apply(lambda x: x.split('/')[0]) # Retain only the first category
+
+        decode, df = category_encode_decode(df)
+        with open('image_decoder.pkl', 'wb') as file:
+            pickle.dump(decode, file)
+
+        y = df.category_codes # target variable
+        with open('CNN_targets.pkl', 'wb') as file:
+            pickle.dump(y, file)
+
+        X = df['image_array'].apply(lambda x: x.flatten())
+
+        with open('CNN_features.pkl', 'wb') as file:
+            pickle.dump(X, file)
+```
+
+
+We use 3 convolutional layers, having some max pooling of size 2x2 and connected with ReLU activation functions with a softmax function at the end to output probabilities of each class. The CNN class is shown below:
 
 ```python
 random_search.fit(X_train, y_train)
@@ -242,8 +271,6 @@ y_pred = random_search.predict(X_test)
 print(random_search.best_params_)
 print(f'The accuracy of our predictions: {round(accuracy_score(y_test, y_pred), 5) * 100} %')
 print(classification_report(y_test, y_pred))
-
-```python
 
 class CNN(torch.nn.Module):
     def __init__(self):
