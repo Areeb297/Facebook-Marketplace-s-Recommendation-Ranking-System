@@ -38,18 +38,15 @@ class ProductDataset(Dataset):
         labels = torch.tensor(self.y.iloc[index]).long()
         features = torch.tensor(features).float()
         features = features.reshape(3, 155, 155)
+        # # calculate mean and std
+        # mean, std = features.mean([1,2]), features.std([1,2])
+        # print(mean)
+        # print(std)
         
         features /= 255 # Scale all the features from 0 - 1
-        
         self.transform = transforms.Compose([
             
             # Normalize using mean and standard deviations for all 3 colour channels
-            
-            transforms.Normalize(
-                mean = [0.485, 0.456, 0.406],
-                std = [0.229, 0.224, 0.225]
-                ),
-            
             transforms.RandomHorizontalFlip()
             
             ])
@@ -259,7 +256,7 @@ def train(model, device, train_loader, valid_loader, epochs=10):
 
     # patience = 2
     # triggertimes = 0
-    optimiser = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-6)
+    optimiser = torch.optim.Adam(model.parameters(), lr=1e-4)
     # exp_lr_scheduler = lr_scheduler.StepLR(optimiser, step_size=3, gamma=0.1)
     # optimiser = torch.optim.Adam(model.parameters(), lr=3e-4)
     # Decay LR by a factor of 0.1 every 7 epochs
@@ -327,8 +324,10 @@ def train(model, device, train_loader, valid_loader, epochs=10):
             'training+loss': loss}, os.path.join(weights_path, f'epoch_{epoch}_results'))
 
         
-        print(f'Epoch {epoch} - loss: {avg_loss_epoch:.4f} \naccuracy: {epoch_acc:.4f}%\
-\nval_loss: {validation_loss} \nval_accuracy: {val_acc:.4f}%')
+        print(f'\nEpoch {epoch}: \nloss: {avg_loss_epoch:.4f} \naccuracy: {epoch_acc:.4f}%\
+\nval_loss: {validation_loss:.4f} \nval_accuracy: {val_acc:.4f}%')
+
+        writer.add_scalar('Validation Acc', val_acc, batch_idx)
         
         if val_acc > 60:
             print('Desired accuracy reached')
