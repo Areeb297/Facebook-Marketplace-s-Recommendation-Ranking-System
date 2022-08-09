@@ -231,7 +231,7 @@ print(classification_report(y_test, y_pred))
 - The results are as follows:
 > Best parameters: {'solver': 'lbfgs', 'penalty': 'l2', 'max_iter': 400, 'C': 2.592943797404667}, the accuracy of our predictions: 14.74 %
 
-## Milestone 4: Creating a basic pytorch vision CNN model
+## Milestone 4: Creating a pytorch vision CNN model from scratch
 
 - After testing with sklearn logistic regression, we use a CNN deep neural network to see our performance on the images we saved in higher pixel dimension (3x155x155). Firstly, we split the dataset into features and targets using the generate_features_targets function where we save the encoding of the targets/product categories into numbers to be able to decode the outputs afterward. We save the decoder file as image_decoder.pkl along with the feature and target files (pickle file format) as shown below:
 
@@ -360,7 +360,7 @@ Results:
 > Accuracy of the network on the test images: 10.0 %
 
 
-## Milestone 5: Implementing transfer learning and Resnet50
+## Milestone 5: Implementing transfer learning with Resnet50
 
 ## Milestone 6: Create the text understanding model
 
