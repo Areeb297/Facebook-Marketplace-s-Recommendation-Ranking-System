@@ -62,7 +62,7 @@ def clean_text_data(column, keep_char=None):
         pd.Series: Pandas series containing only numeric and alphabetic data
 
     """
-    non_alpha_numeric = column.str.replace('\W', ' ', regex=True).apply(lambda x: x.lower())
+    non_alpha_numeric = column.str.replace('\W', ' ', regex=True).apply(lambda x: x.lower()) # all characters in lower case
     non_whitespace = non_alpha_numeric.str.replace('\s+', ' ', regex=True)
     # remove all single characters
     clean_text = non_whitespace.apply(lambda x: ' '.join([w for w in x.split() if len(w)>1]))
@@ -73,7 +73,7 @@ def clean_text_data(column, keep_char=None):
 
 
 def get_data_pipeline():
-    """This function acts a pipeline where all the previous functions are run to return a cleaned dataset
+    """This function acts a pipeline where all the previous functions are run to return a cleaned dataset 
 
     Returns:
         pd.DataFrame: A clean product dataset is returned for further analysis
@@ -92,8 +92,7 @@ def get_data_pipeline():
     data['location'] = data['location'].astype('category')
     data['category'] = data['category'].astype('category')
 
-
-    data['product_name'] = clean_text_data(data['product_name'], 8)
+    data['product_name'] = clean_text_data(data['product_name'], 10) # Keep the first 10 words (at max) in product name (longest product name)
     data['product_description'] = clean_text_data(data['product_description'])
 
     # We get duplicates with only these columns as our criteria and keep only the first occuring values
