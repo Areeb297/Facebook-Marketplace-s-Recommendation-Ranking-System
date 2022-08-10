@@ -8,7 +8,9 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 def merge():
-    """This function merges the product and image datasets where every product can have more than one image
+    """This function merges the product and image datasets where every product can have more than one image,
+    keeps the first category from the category column converts the category column into numerical codes and lastly, 
+    saves the mapping as a dictionary for decoding purposes 
 
     Returns:
         pd.DataFrame: We return a cleaned dataframe ready to use for image classification
@@ -38,9 +40,7 @@ def merge():
 
 def generate_ml_classification_data(path, filename, show_plot=True):
     """This function gets the images from the cleaned_images folder, converts them to an array, merges them into the 
-    main (merged) dataframe and saves  whilst also checking that the each image array corresponds to the correct image id,
-    keeps the first category from the category column, converts the column into numerical codes and lastly, saves the mapping as a dictionary
-    for decoding purposes 
+    main (merged) dataframe and saves it whilst also checking that the each image array corresponds to the correct image id
 
     Args:
         path (str): Path to where the image files are located
