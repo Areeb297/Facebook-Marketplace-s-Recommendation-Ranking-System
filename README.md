@@ -217,6 +217,9 @@ print(classification_report(y_test, y_pred))
 
 ## Milestone 4: Creating a pytorch vision CNN model (without and with transfer learning)
 
+<ins>2 - CNN without transfer learning:</ins>
+
+
 - After testing with logistic regression, we use a CNN deep neural network instead to inspect whether our performance improves on the images we saved in higher pixel dimension (3x154x154). Coming back to the image loader class we referred to earlier, this class uses the product_images.csv file to obtain the category codes (labels) and the image id which then is used to locate the corresponding image file with the same id in the cleaned_images folder. The image is then resized to 128x128 and centered to run the CNN model faster (even though we will use GPU) applied random horizontal flips on the data to generate more variety in the images for better model performance, converted the images to pytorch tensors, and normalized the three channels in the image (RGB). Given an index, our class will then return the desired image tensor with its label in tuple form (image_tensor, label) and we can apply the decoder dictionary if we want to see what class the image tensor belongs to. We can find the code in the 'image_loader.py' file where shown below are code snippets about the class:
 
 ```python
@@ -243,83 +246,76 @@ image = self.transform(image).float() # we will use this class to load data in b
 dataset = ImageDataset() # initialize class
 dataset.decoder[int(dataset[0][1])] # the 0 corresponds to the image index, 1 corresponds to getting the label as the class returns a tuple (tensor, label)
 ```
-- We define the dataloader function below which splits the data into train, test, and validation and returns them as dataloaders that will be looped through in batches of size 32. We first specify the training percentage, get the data, then subtract that from the whole data to get the test data. Finally, we define a validation percentage which we apply to the training data and split the data into training and validation. We use 0.1 of the training data as validation and 0.2 of the data as testing (0.8 for training). We then save these dataloaders as pickle files as we want to compare different models on the same training and test data. We utilize the GPU available to ensure we can run 20-30 epochs within only 10-15 minutes. All of the code shown in this milestone is available in the file 'transfer_learning_CNN.py'. Below, we examine further in code, how we obtained the training, validation (used for early stopping to prevent overfitting), and testing data:
+- We define the dataloader function below which splits the data into train, test, and validation and returns them as dataloaders that will be looped through in batches of size 32. We first specify the training percentage, get the data, then subtract that from the whole data to get the test data. Finally, we define a validation percentage which we apply to the training data and split the data into training and validation. We use 10% of the training data as validation and 20% of the whole data as testing (0.8 for training). We then save these dataloaders as pickle files as we want to compare different models on the same training and test data. We utilize the GPU available to ensure we can run 20-30 epochs within only 10-15 minutes. All of the code shown in this milestone is available in the file 'transfer_learning_CNN.py'. Below, we examine further in code, how we obtained the training, validation (used for early stopping to prevent overfitting), and testing data:
+
+```python
+dataset = ImageDataset() # Initialize the class as shown before
+train_loader, valid_loader, test_loader = split_dataset(dataset, 0.8, 0.1) # Use the split_dataset function - 0.8 (training), 0.1(validation)
+# The split_data function:
+
+def split_dataset(dataset, train, valid):
+    train_validation = int(len(dataset) * train) # Get amount of train samples
+    validation_split = int(train_validation * valid) # Get validation from train
+    test_split = int(len(dataset) - train_validation) # subtract from train to get test (remaining data)
+    
+    # Use random split to split using the numbers
+    train_data, test_data = random_split(dataset, [train_validation, test_split], generator=torch.Generator().manual_seed(100))
+    train, validation = random_split(train_data, [int(train_validation - validation_split), validation_split], generator=torch.Generator().manual_seed(100))
+
+    # put the data into dataloaders to iterate through them in batches
+    train_loader = DataLoader(train, batch_size=32, shuffle=True)
+    valid_loader = DataLoader(validation, batch_size=32, shuffle=True)
+    test_loader = DataLoader(test_data, batch_size=32, shuffle=False)
+```
+- Next we define our CNN class where we use 3 convolutional layers, having some max pooling of size 2x2 and connected with ReLU activation functions with a softmax function at the end to output probabilities of each class. The max pooling and dropout layers are present for regularisation and reduce number of parameters trained to reduce overfitting and run time. The code snippet that represents the deep learning architecture connected using torch Sequential module is shown below with a softmax function at the end to output probabilities:
 
 ```python
 
+self.layers = torch.nn.Sequential(
+    torch.nn.Conv2d(3, 200, 5, 2), # Kernel size 7 with stride 2
+    torch.nn.MaxPool2d(4,4),
+    torch.nn.ReLU(),
+
+    torch.nn.Conv2d(200, 100, 3),
+    # torch.nn.MaxPool2d(2, 2), # Max pooling (2, 2) filter
+    torch.nn.Dropout(p=0.2),
+    torch.nn.ReLU(),
+
+    torch.nn.Conv2d(100, 50, 3),
+    torch.nn.MaxPool2d(2, 2),
+    torch.nn.Dropout(p=0.3),
+    torch.nn.ReLU(),
+
+    torch.nn.Flatten(), # flatten all the torch tensor to be able to output 13 features at the end
+    torch.nn.Linear(1250, 100),
+    torch.nn.Linear(100, 13), #  Predicting 13 product categories
+    torch.nn.Softmax(dim=1)
+)
 ```
 
+Furthermore, apart from defining functions and classes for employing early stopping (shown below) and calculating training, validation loss and testing accuracy, we use the tensorboard library to plot graphs of the validation and training losses to visually inspect the change in loss with respect to every batch or epoch. Lastly, we do not expect a high accuracy as we only run our model for 20 epochs and to learn the patterns in our image dataset would require hours of training with multiple GPUs if we want to train a CNN from scratch. 
 
-
-
-
-
+Here is a code snippet to show how our early stopping class is defined where it checks the average validation loss after every epoch and if it keeps increasing continually, the training function stops and returns the model:
 
 ```python
 
-def generate_features_targets():
-    if not os.path.exists('CNN_merged_dataframe.pkl'):
-        merge_im_array('cleaned_images/', 'CNN_merged_dataframe.pkl') # module from merge_data.py to merge the image arrays into the main dataframe
+# Early stopping
+class EarlyStopping():
+    def __init__(self, patience=4): # patience is how many times the validation loss per epoch is allowed to increase
+        self.patience = patience
+        self.counter = 0
+        self.early_stop = False
 
-
-    if not os.path.exists('image_decoder.pkl'): # checks if the features pickle exists to see if we already ran this function
-        df = pd.read_pickle('CNN_merged_dataframe.pkl')
-        df.category = df.category.apply(lambda x: x.split('/')[0]) # Retain only the first category
-
-        decode, df = category_encode_decode(df)
-        with open('image_decoder.pkl', 'wb') as file:
-            pickle.dump(decode, file)
-
-        y = df.category_codes # target variable
-        with open('CNN_targets.pkl', 'wb') as file:
-            pickle.dump(y, file)
-
-        X = df['image_array'].apply(lambda x: x.flatten())
-
-        with open('CNN_features.pkl', 'wb') as file:
-            pickle.dump(X, file)
+    def __call__(self, previous_val_loss, curr_val_loss):
+        if curr_val_loss >= previous_val_loss:
+            self.counter +=1 # counter keeps track
+            if self.counter >= self.patience:  
+                self.early_stop = True
+        else:
+            self.counter = 0 # if the next epoch has lower validation, counter goes back to zero
 ```
 
-
-We use 3 convolutional layers, having some max pooling of size 2x2 and connected with ReLU activation functions with a softmax function at the end to output probabilities of each class. The CNN class is shown below:
-
-```python
-random_search.fit(X_train, y_train)
-y_pred = random_search.predict(X_test)
-
-print(random_search.best_params_)
-print(f'The accuracy of our predictions: {round(accuracy_score(y_test, y_pred), 5) * 100} %')
-print(classification_report(y_test, y_pred))
-
-class CNN(torch.nn.Module):
-    def __init__(self):
-        super().__init__()
-        # Declaring the Architecture
-        self.layers = torch.nn.Sequential(
-            torch.nn.Conv2d(3, 200, 5, 2), # Kernel size 7 with stride 2
-            torch.nn.MaxPool2d(4,4),
-            torch.nn.Dropout(p=0.1),
-            torch.nn.ReLU(),
-            
-            torch.nn.Conv2d(200, 100, 3),
-            # torch.nn.MaxPool2d(2, 2), # Max pooling (2, 2) filter
-            torch.nn.Dropout(p=0.1),
-            torch.nn.ReLU(),
-
-            torch.nn.Conv2d(100, 50, 3),
-            torch.nn.MaxPool2d(2, 2),
-            torch.nn.Dropout(p=0.3),
-            torch.nn.ReLU(),
-
-            torch.nn.Flatten(),
-            torch.nn.Linear(2450, 100),
-            torch.nn.Linear(100, 13), #  Predicting 13 product categories
-            torch.nn.Softmax(dim=1)
-        )
-```
-To obtain the relevant data, we read in the CNN merged dataframe, split the image array and category columns as features and targets respectively after flattening the image array column, and we then create a Product Dataset class which converts the features and labels into tensor format, normalizes the 3 colour channels, and outputs features and targets as a tuple. We split the data into training, validation, and testing where validation is used for early stopping in order to prevent overfitting of the data. Additionally, apart from defining functions and classes for employing early stopping and calculating training, validation loss and testing accuracy, we use the tensorboard library to plot graphs of the validation and training losses to visually inspect the change in loss with respect to every batch or epoch. Lastly, we do not expect a high accuracy as we only run our model for 20 epochs and to learn the patterns in our image dataset would require hours of training with multiple GPUs. 
-
-Thus, after running the model, we only achieve an accuracy of 10% on the testing set which is extremely poor. The solution to this problem would be to utilize transfer learning using a pretrained model such as Resnet50 where more on this will be discussed in the next milestone. Shown below are code snippets from the basic_CNN_classification.py file displaying what steps our train function goes through to train model parameters based on cross entropy loss (multiclassification):
+Shown below are code snippets from the transfer_learning_CNN.py file displaying what steps our train function goes through to train model parameters based on cross entropy loss (multiclassification) where to summarize, the training function saves the model weights after every epoch in the 'model_evaluation' folder and the best model parameters in the 'final_models' directory. The model uses the adam optimizer due it being computationally efficient, requiring less memory space (fewer parameters) and working well with large datasets. 
 
 ```python
  # Early stopping
