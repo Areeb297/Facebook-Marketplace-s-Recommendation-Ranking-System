@@ -35,8 +35,9 @@ data.drop_duplicates(subset=['product_name', 'location', 'product_description', 
 data.drop(columns=['url', 'page_id'], inplace=True)
 ```
 
+- Concerning the images folder and Images.csv file, we create a cleaning pipeline for both. For the images.csv folder, we will discuss more in the next milestone.
 
-- Concerning the images folder and Images.csv file, we create a cleaning pipeline for both. Regarding the images folder, we develop functions to resize all the images into one consistent format with same number of channels (3) (RGB) and size (height, width). As using high pixel size will result in memory problems and poor performance when running sklearn ML models, we take two approaches when cleaning the images folder. For machine learning, we use a black background image of size (30x30) and paste the images on that after scaling to the appropriate dimensions. We save these (3, 30, 30) images in the 'cleaned_images_ML' folder with the name of each jpg file being the image id. 
+- Regarding the images folder, we develop functions to resize all the images into one consistent format with same number of channels (3) (RGB) and size (height, width). As using high pixel size will result in memory problems and poor performance when running sklearn ML models, we take two approaches when cleaning the images folder. For machine learning, we use a black background image of size (30x30) and paste the images on that after scaling to the appropriate dimensions. We save these (3, 30, 30) images in the 'cleaned_images_ML' folder with the name of each jpg file being the image id. 
 
 - For generating images for our CNN model, we obtain images of size (3, 154, 154) as this was based on finding minimum height and width from the image dataset, using the lowest number from them and subtracting one if the number was odd. We do not run into memory problems as CNNs are designed to be working with large image data. We save the images in the 'cleaned_images' folder. 
 
@@ -135,6 +136,10 @@ rmse = np.sqrt(mean_squared_error(y_test, grid_search.predict(X_test)))
 print(f'RMSE: {rmse}')
 ```
 <ins>2 - Logistic Regression for predicting product category (Classification):</ins>
+
+- Coming back to merging the data first, we use pandas merge to combine both the Image.csv and Product.csv files after having cleaned them. For the images.csv file, we drop unecessary columns like create_time, bucket_link, image_ref and we merge both datasets on the common image id column. Once we have a merged dataframe, we need to loop through the cleaned images folders (both ML and CNN folders), convert the image data into an array
+
+
 
 - Firstly, in our merge_data.py file, we create another function which loops through the images from the cleaned_images folder, converts them into numpy array format, takes the image id from the image file, checks which row of our merged dataframe corresponds to that image id, then places each image_array as a list in the correct row under the column 'image_array'. 
 
