@@ -21,7 +21,7 @@ class ImageDataset(torch.utils.data.Dataset):
                  transform: transforms = None):
 
         # # Get the images   
-        self.merged_data = pd.read_pickle('product_images.csv')     
+        self.merged_data = pd.read_csv('product_images.csv')     
         self.files = self.merged_data['image_id']
         self.labels = self.merged_data['category_codes']
 
@@ -36,7 +36,7 @@ class ImageDataset(torch.utils.data.Dataset):
                 transforms.RandomHorizontalFlip(p=0.3),
                 transforms.ToTensor(),
                 transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                 std=[0.229, 0.224, 0.225]) # is this right?
+                                 std=[0.229, 0.224, 0.225]) 
             ])
 
     def __getitem__(self, index):
@@ -51,3 +51,6 @@ class ImageDataset(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.files)
+
+# print(dataset[0][0])
+# print(dataset.decoder[int(dataset[0][1])])
