@@ -23,9 +23,20 @@ def merge():
     df = pd.merge(left=products_data, right=images_data, on=('product_id', 'create_time'), sort=True)
     df.drop(columns=['product_id','create_time', 'bucket_link', 'image_ref'], inplace=True)
     df.rename(columns={'id': 'image_id'}, inplace=True)
+
+    df.category = df.category.apply(lambda x: x.split('/')[0]) # Retain only the first category
+    df.category =  df.category.astype('category')
+    df['category_codes'] =  df.category.cat.codes # convert category column into numerical codes
+    decoder_dict = dict(enumerate(df['category'].cat.categories))
+
+    df.to_csv('product_images.csv') # This will be saved for later to use for deep learning/CNNs/transfer learning
+    
+    with open('image_decoder.pkl', 'wb') as file: # same encodings no matter how many times it is run
+        pickle.dump(decoder_dict, file)
+
     return df
 
-def generate_classification_data(path, filename, show_plot=False):
+def generate_ml_classification_data(path, filename, show_plot=True):
     """This function gets the images from the cleaned_images folder, converts them to an array, merges them into the 
     main (merged) dataframe and saves  whilst also checking that the each image array corresponds to the correct image id,
     keeps the first category from the category column, converts the column into numerical codes and lastly, saves the mapping as a dictionary
@@ -47,27 +58,19 @@ def generate_classification_data(path, filename, show_plot=False):
                 arr_im = np.asarray(image)
                 data['image_array'].loc[data['image_id'] == item[:-4]] = [arr_im] # assign the image array to the correct location/row in the dataframe
 
-        data.category = data.category.apply(lambda x: x.split('/')[0]) # Retain only the first category
-        data.category =  data.category.astype('category')
-        data['category_codes'] =  data.category.cat.codes # convert category column into numerical codes
-        decoder_dict = dict(enumerate(data['category'].cat.categories))
-
         with open(filename, 'wb') as file:
             pickle.dump(data, file) # Save the final dataframe as pickle file to keep image array format
-        
-        with open('image_decoder.pkl', 'wb') as file: # same encodings no matter how many times it is run
-            pickle.dump(decoder_dict, file)
+
     else:
         data = pd.read_pickle(filename)
 
-    # Show that our target variabe has balanced classes and thus no need for oversampling/undersampling
+    # Show that our target variabe has balanced classes and thus no need for oversampling/undersampling when using ML 
     if show_plot:
         sns.countplot(y=data.category)
         plt.show()
 
 
 if __name__ == '__main__':
-    generate_classification_data('cleaned_images/', 'product_images.pkl') # 154 x 154 pixel size
-    generate_classification_data('cleaned_images_ML/', 'ML_product_images.pkl') # 30x30 pixel size
+    generate_ml_classification_data('cleaned_images_ML/', 'ML_product_images.pkl') # 30x30 pixel size
 
 
