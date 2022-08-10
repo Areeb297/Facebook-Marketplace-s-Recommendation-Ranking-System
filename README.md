@@ -137,13 +137,16 @@ print(f'RMSE: {rmse}')
 ```
 <ins>2 - Logistic Regression for predicting product category (Classification):</ins>
 
-- Coming back to merging the data first, we use pandas merge to combine both the Image.csv and Product.csv files after having cleaned them. For the images.csv file, we drop unecessary columns like create_time, bucket_link, image_ref and we merge both datasets on the common image id column. Once we have a merged dataframe, we need to loop through the cleaned images folders (both ML and CNN folders), convert the image data into an array
+- Coming back to merging the data first, we use pandas merge to combine both the Image.csv and Product.csv files after having cleaned them. For the images.csv file, we drop unecessary columns like create_time, bucket_link, image_ref and we merge both datasets on the common image id column. Once we have a merged dataframe, we firstly split the category data such that we only retain the one relevant category for every product observation to then convert the category into codes using cat.codes and then save the mapping as a dictionary into a pickle file ('image_decoder.pkl') to be able to decode them later once our model has returned the predictions. We save the cleaned product_images as product_images.csv file. 
+
+- The final shape for this data is 11,115 rows with 8 columns which is not a lot of data when using machine learning or deep neural nets. With transfer learning however, we can achieve a high accuracy when implementing deep learning but we will examine that later. For our deep learning network, we will define an image loader class which will read in the product_images.csv file, using the image id from the dataset, look through the cleaned_images (154x154) folder for the required image id, convert to pytorch tensor, obtain the features, and so on. However, for machine learning, we will require another method to combine the images and the csv file as we do not have an image loader class.
+
+- To do this, in our merge_data.py file, we create another function called 'generate_ml_classification_data' which initializes an empty column 'image_array' in the cleaned dataframe, loops through the images from the cleaned_images_ML (size 30x30) folder, converts them into numpy array format using np.asarray(image), takes the image id from the image file name (indexing and removing .jpg from the file name), checks which row of our merged dataframe corresponds to that image id, then places each image_array as a list in the correct row under the column 'image_array'. We save this dataframe as a pickle file (ML_product_images.pkl) to prevent the array format of images being changed to string format after reloading the dataframe.
+
+- We can find the code for merging the data and the steps mentioned above in the 'merge_data.py' file. Some code snippets are shown below from that file:
 
 
-
-- Firstly, in our merge_data.py file, we create another function which loops through the images from the cleaned_images folder, converts them into numpy array format, takes the image id from the image file, checks which row of our merged dataframe corresponds to that image id, then places each image_array as a list in the correct row under the column 'image_array'. 
-
-- The total number of observations is 12,600 where we save this dataframe as a pickle file to prevent the array format of images being changed after we reload the dataframe. Next, we load this pickle file in our image_classification python file, encode our categories into numbers, save the encoding, take the image_array column as our features where we flatten each row, take the encoded categories as our targets, perform train-test split and use logistic regression for classification for all 13 categories as shown below:
+- we load this pickle file in our image_classification python file, encode our categories into numbers, save the encoding, take the image_array column as our features where we flatten each row, take the encoded categories as our targets, perform train-test split and use logistic regression for classification for all 13 categories as shown below:
 
 ```python
 file = open("image_dataframe.pkl",'rb')
