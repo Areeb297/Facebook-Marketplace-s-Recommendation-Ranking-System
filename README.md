@@ -145,6 +145,38 @@ print(f'RMSE: {rmse}')
 
 - We can find the code for merging the data and the steps mentioned above in the 'merge_data.py' file. Some code snippets are shown below from that file:
 
+```python
+# merge the product and image data
+df = pd.merge(left=products_data, right=images_data, on=('product_id', 'create_time'), sort=True) # merge on common columns (product_id, create_time)
+df.drop(columns=['product_id','create_time', 'bucket_link', 'image_ref'], inplace=True) # Drop irrelevant columns
+
+# Retain first category from group of relevant categories for each product e.g., 'Home & Garden' from 'Home & Garden / Other Goods / DIY Tools & Materials'
+df.category = df.category.apply(lambda x: x.split('/')[0]) # Retain only the first category
+df.category =  df.category.astype('category') # change datatype to category to be able to use cat.codes
+df['category_codes'] =  df.category.cat.codes # convert category column into numerical codes
+decoder_dict = dict(enumerate(df['category'].cat.categories)) # dictionary that contains encodings of text to numbers
+
+df.to_csv('product_images.csv') # This will be saved for later to use for deep learning/CNNs/transfer learning
+
+# convert the image data into array
+data['image_array'] = " " # initalize empty column in dataframe
+dirs = os.listdir('cleaned_images_ML')
+for image_name in dirs:
+ if image_name[:-4] in data['image_id'].values: # exclude the .jpg from the image name to get image id
+ image = Image.open(path + image_name)
+ arr_im = np.asarray(image) # convert to array
+ data['image_array'].loc[data['image_id'] == item[:-4]] = [arr_im] # locate which column the image id matches, place the image array in that column
+ 
+# We also use seaborn to plot a countplot of all the category classes which shows us the classes are fairly balanced and we do not need any oversampling etc
+sns.countplot(y=data.category)
+plt.show()
+```
+We see that our image dataset is mostly balanced which indicates no issues regarding imbalanced set of classes when it comes to multiclassification.  We see as shown below that Home & Garden category has the most images/observations so it would make sense that the model performs the best on that category.
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/51030860/182227206-cddce56e-0503-47f0-9bd6-007cd2e7d91d.png" alt="Sublime's custom image"/>
+</p>
+
 
 - we load this pickle file in our image_classification python file, encode our categories into numbers, save the encoding, take the image_array column as our features where we flatten each row, take the encoded categories as our targets, perform train-test split and use logistic regression for classification for all 13 categories as shown below:
 
@@ -184,11 +216,7 @@ random_search = sklearn.model_selection.RandomizedSearchCV(
     )
 ```
  
-- The results are that we obtain an accuracy of around 15% which is poor but it is better than random guessing (1/13 ~ 7% accuracy) and gives us a benchmark to compare and improve upon when using deep learning frameworks. The sklearn models are not designed to classify images so we expected poor performance. We see as shown below that Home & Garden category has the most images so it would make sense that the model performs the best on that category. We see that our image dataset is mostly balanced which indicates no issues regarding imbalanced set of classes when it comes to multiclassification.
-
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/51030860/182227206-cddce56e-0503-47f0-9bd6-007cd2e7d91d.png" alt="Sublime's custom image"/>
-</p>
+- The results are that we obtain an accuracy of around 15% which is poor but it is better than random guessing (1/13 ~ 7% accuracy) and gives us a benchmark to compare and improve upon when using deep learning frameworks. The sklearn models are not designed to classify images so we expected poor performance. 
 
 -  We print the classification report additionally which gives us the precision, recall, and f1-score for each category where we can see that our model performs more confidently when predicting the Home & Garden category, 'Computers & Software' and 'Office Furniture & Equipment'. 
 <p align="center">
