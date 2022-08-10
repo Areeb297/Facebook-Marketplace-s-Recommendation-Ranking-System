@@ -21,7 +21,7 @@ class ImageDataset(torch.utils.data.Dataset):
                  transform: transforms = None):
 
         # # Get the images   
-        self.merged_data = pd.read_pickle('product_images.pkl')     
+        self.merged_data = pd.read_pickle('product_images.csv')     
         self.files = self.merged_data['image_id']
         self.labels = self.merged_data['category_codes']
 
