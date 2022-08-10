@@ -84,11 +84,7 @@ for img in list_img:
         new_img = new_img.convert('RGB')
 ```
 
-
-
-- As every product can have more than one corresponding image, we need to join the image and product tabular datasets. We merge them after cleaning the product tabular dataset on image_id and we drop all irrelevant columns such as product_id, create_time, bucket_link and image_ref.
-
-- To build the cleaned images folder, we loop through the images in the image folder, apply our resize function by adding the image onto a rgb background of pixel size 50 and resizing our image, and finally save the new images by their ids in the cleaned_images folder. For building the CNN image dataset, we use a different approach where we find the minimum size of all the images and change the aspect ratio to that (155x155) and then we ensure the channel is RGB. A code snippet is shown below of how it is done:
+One important point to mention is that every product can have more than one corresponding image, hence we need to merge the image and product datasets using image id as the join column when predicting product categories using image data (multiclass classification). We will see more on this in the next milestone.
 
 
 ## Milestone 3: Create simple Machine Learning models
@@ -100,39 +96,43 @@ We created two simple ML models using Linear regression (Regression) and Logisti
 
 <ins>1 - Linear Regression model for predicting price (Regression):</ins>
 
-- First we split the data into features (name, description, location) and targets (price) to then transforming our features using TfidfVectorizer. We convert all the text into weights assigned to each word based on their term frequency in the whole merged dataframe. Additionally, we exclude stopwords from our features such as 'the', 'are' etc. We do not apply this transformation on the location feature as it is not needed. This process is done to remove unnecessary words from hindering our model performance. 
+- First we split the data into features (name, description, location) and targets (price) to then transforming our features using TfidfVectorizer. We convert all the text into weights assigned to each word based on their term frequency in the whole product dataframe after cleaning it ('clean_tabular_data.py'). Additionally, we exclude stopwords from our features such as 'the', 'are' etc using stopwords from the nltk.corpus library. This process is done to remove unnecessary words from hindering our model performance. 
 
-- Next we have hyperparameters we define for Gridsearch to select the optimal such as n_gram range and minimum term frequency. Lastly we perform linear regression. We do get a terrible RMSE (approx 230,000) and r^2 score (-0.005) as we have too many features (curse of dimensionality) and have overparametrized our model. We can potentially focus on removing further words from our model or obtain more data in the future. We can try other models like random forest regressor but they take a long time with so many features and hence may not be feasible at the moment. Furthermore, we only keep the first 8 words in the product name to avoid having a seriously long product name in our analysis. 
+- Moreover, we have hyperparameters we define for Gridsearch to select the optimal of them such as n_gram range of tfidf vector and minimum term frequency to include a word. Lastly we perform linear regression where we do get a terrible RMSE (approx 86,000) and r^2 score (-60) as we have too many features (curse of dimensionality) and have overparametrized our model. We can potentially focus on removing further words from our model resulting in removal of more feature columns, or obtain more data in the future. We can try other models like random forest regressor but they take a long time to fit with so many features and hence may not be feasible at the moment. Furthermore, we may only keep the first few words in the product name to avoid having a seriously long product names in our analysis as mentioned before. Shown below are code snippets from the 'regression.py' file about how we transform text into numerical data using Tf-idf and use grid search.
 
 ```python
-pipeline = Pipeline(
+# After cleaning Product.csv:
+X = product_data[['product_name', 'product_description', 'location']] # features
+y = product_data['price'] # targets
 
-    [   
+stop = set(stopwords.words('english')) # Get the stopwords list
+# Initialize tfidf vectors to transform all text columns
+tfidf = ColumnTransformer([
+        ("vector_1", TfidfVectorizer(stop_words=stop), 'product_name'),
+        ("vector_2", TfidfVectorizer(stop_words=stop), 'product_description'),
+        ("vector_3", TfidfVectorizer(stop_words=stop), 'location')], 
+        remainder='passthrough') 
+
+# Create a pipeline to run the column transformations and perform linear regression
+pipeline = Pipeline([   
         ("tfidf", tfidf),
-        ("lr", LinearRegression())
-    ]
-)
+        ("lr", LinearRegression())])
 
-# set parameters for the tfidf vectors
+# hyperparameters for the tfidf vectors to tune and optimise
 parameters = {
     'tfidf__vector_1__ngram_range': ((1, 1), (1, 2)),
-    'tfidf__vector_2__min_df': (0.005,  0.2, 0.01),
+    'tfidf__vector_2__min_df': (0.005,  0.2, 0.01)}
 
-    'tfidf__vector_2__ngram_range': ((1,1), (1,2)),
-    'tfidf__vector_1__min_df': (0.2, 0.05, 0.001)
-}
-
-# Find the best hyperparameters for both the feature extraction and regressor
+# Find the best hyperparameters for both the feature extraction and regressor using Grid Search from sklearn
 grid_search = GridSearchCV(pipeline, parameters, n_jobs=-1, verbose=2)
 
 # split data in to train/test
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 grid_search.fit(X_train, y_train)
 
-# calculate RMSE
+# calculate and print RMSE (in regression.py, we also print R-squared representing the goodness of fit)
 rmse = np.sqrt(mean_squared_error(y_test, grid_search.predict(X_test)))
 print(f'RMSE: {rmse}')
-print(f'The r^2 score was: {r2_score(y_test, grid_search.predict(X_test))}')
 ```
 <ins>2 - Logistic Regression for predicting product category (Classification):</ins>
 
