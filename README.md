@@ -41,7 +41,7 @@ data.drop(columns=['url', 'page_id'], inplace=True)
 
 - For generating images for our CNN model, we obtain images of size (3, 154, 154) as this was based on finding minimum height and width from the image dataset, using the lowest number from them and subtracting one if the number was odd. We do not run into memory problems as CNNs are designed to be working with large image data. We save the images in the 'cleaned_images' folder. 
 
-- We can find the code in the file 'clean_images.py' where code snippets are shown below as to how the images were resized and transformed:
+We can find the code in the file 'clean_images.py' where code snippets are shown below as to how the images were resized and transformed:
 
 ```python
 
@@ -85,7 +85,7 @@ for img in list_img:
         new_img = new_img.convert('RGB')
 ```
 
-One important point to mention is that every product can have more than one corresponding image, hence we need to merge the image and product datasets using image id as the join column when predicting product categories using image data (multiclass classification). We will see more on this in the next milestone.
+- One important point to mention is that every product can have more than one corresponding image, hence we need to merge the image and product datasets using image id as the join column when predicting product categories using image data (multiclass classification). We will see more on this in the next milestone.
 
 
 ## Milestone 3: Create simple Machine Learning models
@@ -171,72 +171,49 @@ for image_name in dirs:
 sns.countplot(y=data.category)
 plt.show()
 ```
-We see that our image dataset is mostly balanced which indicates no issues regarding imbalanced set of classes when it comes to multiclassification.  We see as shown below that Home & Garden category has the most images/observations so it would make sense that the model performs the best on that category.
+- We see that our image dataset is mostly balanced which indicates no issues regarding imbalanced set of classes when it comes to multiclassification.  We see as shown below that Home & Garden category has the most images/observations so it would make sense that the model performs the best on that category.
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/51030860/182227206-cddce56e-0503-47f0-9bd6-007cd2e7d91d.png" alt="Sublime's custom image"/>
 </p>
 
+- Finally, moving onto our image classification model, we read in the pickle file we saved earlier ('ML_product_images.pkl'), take the image array column as our features by flattening each array so that we have a column of features (30x30 = 900 features), take the category codes column as our target column, perform train test split, define a param grid where we list hyperparameters of logistic regression to tune, fit and predict the logistic regression model on the data. Instead of Grid Search, we exploit randomized search to save time and optimize hyperparameters of the logistic regression function such as the max iterations and regularization (C hyperparameter) etc. We use the lbfgs solver as it is suitable for multiclassification. We did not use other suitable solvers like newton-cg, sag, saga as they take a lot of time to run. 
 
-- we load this pickle file in our image_classification python file, encode our categories into numbers, save the encoding, take the image_array column as our features where we flatten each row, take the encoded categories as our targets, perform train-test split and use logistic regression for classification for all 13 categories as shown below:
+- Shown below are code snippets from the file 'ml_classification.py' indicating how the train test was implemented to split the data, randomized grid search used and predictions made by the logistic regression model.
 
 ```python
-file = open("image_dataframe.pkl",'rb')
-df = pickle.load(file)
+# Get features and targets from the dataframe
+X = df['image_array'].apply(lambda x: x.flatten()) # Flatten array so every row contains one flattened array
+y = df.category_codes
 
-df.category = df.category.apply(lambda x: x.split('/')[0]) # Retain only the first category
-
-decode, df = category_encode_decode(df)
-
-y = df.category_codes # target variable
-X = df['image_array'].apply(lambda x: x.flatten())
-
+# Split the data into 70% train and 30% test
 X_train, X_test, y_train, y_test = train_test_split(list(X), y, test_size=0.3, random_state=42)
 
-```
+# Hyperparameters
+param_grid = [{'penalty':['l2'], 'C': np.logspace(-4, 4, 30), 'solver': ['lbfgs'], 'max_iter': [400]}]
 
- - We use grid search to optimize hyperparameters of the logistic regression function such as the max iterations, regularization (C hyperparameter) etc. We use the lbfgs solver as it is suitable for multiclassification. We did not use other solvers as they take a lot of time to run. Instead of Grid Search, we exploit randomized search to save time. All of this setup is shown below in code:
+model = LogisticRegression() 
 
-```python
-  param_grid = [    
-    {'penalty' : ['l2'],
-    'C' : np.logspace(-4, 4, 30),
-    'solver' : ['lbfgs'], # For multi-classification (newton-cg, sag, saga, lbfgs)
-    'max_iter' : [300, 400]
-    }
-    ]
-
-model = LogisticRegression()
-
-random_search = sklearn.model_selection.RandomizedSearchCV(
+random_search = sklearn.model_selection.RandomizedSearchCV( # randomized search of hyperparameters in param_grid
     estimator=model, 
     param_distributions=param_grid,
-    verbose=4, n_iter=2, cv=2
-
-    )
-```
- 
-- The results are that we obtain an accuracy of around 15% which is poor but it is better than random guessing (1/13 ~ 7% accuracy) and gives us a benchmark to compare and improve upon when using deep learning frameworks. The sklearn models are not designed to classify images so we expected poor performance. 
-
--  We print the classification report additionally which gives us the precision, recall, and f1-score for each category where we can see that our model performs more confidently when predicting the Home & Garden category, 'Computers & Software' and 'Office Furniture & Equipment'. 
-<p align="center">
-<img src="https://user-images.githubusercontent.com/51030860/182907981-aa44e5e4-edea-463e-8cb1-487aaa0bd888.png" alt="Sublime's custom image"/>
-</p>
-
-- For future, we can can exploit further hyperparameter tuning using Grid Search instead of Randomized Search and try other hyperparameters if we want to experiment further with sklearn. Additionally, we can also try other classification algorithms such as XGBoost or Random Forests. Shown below is the code snippet we use to run the model:
-
-```python
-random_search.fit(X_train, y_train)
-y_pred = random_search.predict(X_test)
-
-print(random_search.best_params_)
+    verbose=4, n_iter=2, cv=2)
+        
+# print predictions and classification report
 print(f'The accuracy of our predictions: {round(accuracy_score(y_test, y_pred), 5) * 100} %')
 print(classification_report(y_test, y_pred))
-
 ```
+ 
+- The results we obtain are an accuracy of around 15% which is poor but it is better than say random guessing (1/13 ~ 7% accuracy) and gives us a benchmark to compare and improve upon when comparing using deep learning frameworks. The sklearn models are not designed to classify images so we expected poor performance. 
+
+-  We print the classification report additionally which gives us the precision, recall, and f1-score for each category where as expected, we can see that our model performs more confidently when predicting the Home & Garden category, 'Computers & Software' and 'Office Furniture & Equipment' as these features have more data.
+ 
+<p align="center">
+<img src="https://user-images.githubusercontent.com/51030860/183982155-eac137fe-aba4-4067-9711-2cbdd6875bba.png" alt="Sublime's custom image"/>
+</p>
 
 - The results are as follows:
-> Best parameters: {'solver': 'lbfgs', 'penalty': 'l2', 'max_iter': 400, 'C': 2.592943797404667}, the accuracy of our predictions: 14.74 %
+> Best parameters: {'solver': 'lbfgs', 'penalty': 'l2', 'max_iter': 400, 'C': 2.592943797404667}, the accuracy of our predictions: 15.20%
 
 ## Milestone 4: Creating a pytorch vision CNN model from scratch
 
