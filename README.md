@@ -10,80 +10,59 @@ Here is the ![video link](https://www.youtube.com/watch?v=1Z5V2VrHTTA&ab_channel
 
 ## Milestone 2: Cleaning the tabular and image datasets
 
-- In this stage, we perform data cleaning steps for the product and image datasets. Firstly, concerning the product tabular dataset, we have built a pipeline which completes all cleaning steps such as ensuring all null and duplicate values are removed and all data formats are correct e.g., the price column is converted to float and the product creation time is converted to datetime. We ensure features like location and product category are converted into 'category' format. Additionally, we clean the text data by removing non-alphanumeric characters and unnecessary whitespaces. We use the pandas library and Regex expression to clean the product dataset as shown below:
+- In this stage, we perform data cleaning steps for the product and image datasets. Firstly, concerning the product tabular dataset (Products.csv), we have built a pipeline which completes all cleaning steps like ensuring all null and duplicate values are removed and all data formats are correct e.g., the data type of the price column is converted to float and the time column is converted to datetime. We ensure features like location and product category are converted into 'category' format (nominal data). Additionally, we clean the text data by removing non-alphanumeric characters and unnecessary whitespaces which will help in keeping only important words when using TF-IDF and linear regression to predict product price. For these transformations, we use the pandas library and Regex expression to clean the product dataset as shown below.
 
+The code for this cleaning pipeline can be found in "clean_tabular_data.py"
 ```python
 
+non_alpha_numeric = column.str.replace('\W', ' ', regex=True).apply(lambda x: x.lower()) # remove non-alphanumeric characters
+non_whitespace = non_alpha_numeric.str.replace('\s+', ' ', regex=True) # For removing unnecessary whitespace
+price_column.str.replace('[^0-9.]', '', regex=True).astype('float64') # Keep only numbers and decimals in the price column using regex expression
 
-def clean_text_data(column, keep_char=None):
-    non_alpha_numeric = column.str.replace('\W', ' ', regex=True).apply(lambda x: x.lower())
-    non_whitespace = non_alpha_numeric.str.replace('\s+', ' ', regex=True)
-    # remove all single characters
-    clean_text = non_whitespace.apply(lambda x: ' '.join([w for w in x.split() if len(w)>1]))
-    if keep_char != None:
-        return clean_text.apply(lambda x: ' '.join(x.split(' ')[0:keep_char])) # keep a certain number of words
-    return clean_text
+# remove all single characters
+clean_text = non_whitespace.apply(lambda x: ' '.join([w for w in x.split() if len(w)>1]))
+# For product name, we want to shorten the longest names and therefore, we use the code below to number of words to a minimum
+if keep_char != None:
+    return clean_text.apply(lambda x: ' '.join(x.split(' ')[0:keep_char])) # keep a certain number of words
+return clean_text
 
-# We get duplicates with only these columns as our criteria and keep only the first occuring values
+# We get duplicates with only these columns as our criteria (any product with same values for these columns has to be a duplicate)
+and keep only the first occuring values
+
 data.drop_duplicates(subset=['product_name', 'location', 'product_description', 'create_time', 'price'], keep='first', inplace=True)
 
 # remove unnecessary columns
 data.drop(columns=['url', 'page_id'], inplace=True)
-
-data['price'] = clean_price(data['price'])
-data['create_time'] = clean_time(data['create_time'])
-
-data['location'] = data['location'].astype('category')
-data['category'] = data['category'].astype('category')
-
-
-data['product_name'] = clean_text_data(data['product_name'], 8)
-data['product_description'] = clean_text_data(data['product_description']
-
 ```
 
-- Regarding the images dataset, we also create a pipeline which resizes all the images into one consistent format such that all images have the same number of channels and size (3, 50, 50) for the sklearn dataset and for the CNN dataset, we obtain images of size (3, 155, 155) as this was based on finding minimum height and width from the image dataset and using the lowest number from them. 
 
-As every product can have more than one corresponding image, we need to join the image and product tabular datasets. We merge them after cleaning the product tabular dataset on image_id and we drop all irrelevant columns such as product_id, create_time, bucket_link and image_ref.
+- Concerning the images folder and csv file, we create a cleaning pipeline for both. Regarding the images folder, we develop functions to resize all the images into one consistent format with same number of channels (RGB) and size. As using high pixel size will result in memory problems and poor performance when running sklearn ML models, we take two approaches when cleaning the images folder. For machine learning, we use a black background image of size (30x30) and paste the images on that after scaling to the appropriate dimensions. We save these images in the 'cleaned_images_ML' folder with the name of each jpg file being the image id. 
 
-- To build the cleaned images folder, we loop through the images in the image folder, apply our resize function by adding the image onto a rgb background of pixel size 50 and resizing our image, and finally save the new images by their ids in the cleaned_images folder. For building the CNN image dataset, we use a different approach where we find the minimum size of all the images and change the aspect ratio to that (155x155) and then we ensure the channel is RGB. A code snippet is shown below of how it is done:
+- For generating images for our CNN model, we obtain images of size (3, 154, 154) as this was based on finding minimum height and width from the image dataset, using the lowest number from them and subtracting one if the number was odd. We do not run into memory problems as CNNs are designed to be working with large image data. We save the images in the 'cleaned_images' folder. 
+
+- We can find the code in the file 'clean_images.py' where code snippets are shown below as to how the images were resized and transformed:
 
 ```python
 
-# For the scikit learn 50x50 dataset, we use:
+# For the scikit learn classification dataset, we use pixel size 30x30:
 
-def resize_image_ML(final_size, im):
-    size = im.size
-    ratio = float(final_size) / max(size) 
-    new_image_size = tuple([int(x*ratio) for x in size]) 
-    im = im.resize(new_image_size, Image.LANCZOS)
-    new_im = Image.new("RGB", (final_size, final_size)) # new_img_size = (int(ratio * prev_size[0]), int(ratio * prev_size[1]))
-    new_im.paste(im, ((final_size-new_image_size[0])//2, (final_size-new_image_size[1])//2))
-    return new_im
+final_size = 30
+size = im.size # size of image
+ratio = float(final_size) / max(size)  # We calculate the ratio to change aspect ratio or condense image
+new_image_size = tuple([int(x*ratio) for x in size]) 
 
+im = im.resize(new_image_size, Image.Resampling.LANCZOS) # We resize to the new image size (ratio * previous_size)
+new_im = Image.new("RGB", (final_size, final_size)) # new_img_size = (int(ratio * prev_size[0]), int(ratio * prev_size[1])) # RGB black background
+new_im.paste(im, ((final_size-new_image_size[0])//2, (final_size-new_image_size[1])//2)) # paste on top of black background such that image is in center
 
-def clean_image_data_sklearn(path):
-    list_img = glob.glob('images/*.jpg') # Get all files with file type .jpg
-    # check if cleaned_images exists
-    new_path = path
-    if not os.path.exists(new_path):
-        os.makedirs(new_path)
+list_img = glob.glob('images/*.jpg') # Get all files with file type .jpg (glob library gets filepath to image)
 
-        final_size = 50 # We will use 50x50 images when using Sklearn ML libraries
+# For the CNN dataset, we calculate minimum height and width of all images (and subtract 1 if odd):
 
-        for item in list_img:
-            im = Image.open(item)
-            new_im = resize_image_ML(final_size, im)
-            file_name = item.split('\\')[1]
-            new_im.save(f'{new_path}{file_name}')
-            
-            
-# For the CNN dataset, we use:
 min_width = 100000
 min_height = 100000
 
 for img in list_img:
-
     size = Image.open(img).size
     width, height = size[0], size[1]
 
@@ -93,32 +72,24 @@ for img in list_img:
     if height < min_height:
         min_height = height
 
-min_height = min(min_height, min_width)
-min_width =  min_height
+   min_dim = min(min_height, min_width)
+    if min_dim % 2 != 0:
+        min_dim -=1 # We want even pixel size
 
-# check rgb
-for img in list_img:
+# check rgb and if not (4 dimensions etc or grayscale), convert mode to RGB
 
     new_img = Image.open(img)
     # check RGB color/mode
     if new_img.mode != 'RGB':
         new_img = new_img.convert('RGB')
-
 ```
 
-  
-- For resizing the sklearn images, we use pillow and os libraries in python where the clean_image_data function opens all the images using a for loop, resizes all of them and saves them into a new directory called cleaned_images_sklearn. Below is a snippet shown of the process of how we resize all images and having only RGB channels. We only use the final size as 50 as a larger pixel size will increase the number of predictors and the sklearn machine learning classification model time by a huge amount as it will too much memory. For the CNN, we can use large image sizes.
-  
-```python
-final_size = 50
-size = im.size
-ratio = float(final_size) / max(size) 
-new_image_size = tuple([int(x*ratio) for x in size]) 
-im = im.resize(new_image_size, Image.ANTIALIAS)
-new_im = Image.new("RGB", (final_size, final_size))
-new_im.paste(im, ((final_size-new_image_size[0])//2, (final_size-new_image_size[1])//2))
 
-```
+
+- As every product can have more than one corresponding image, we need to join the image and product tabular datasets. We merge them after cleaning the product tabular dataset on image_id and we drop all irrelevant columns such as product_id, create_time, bucket_link and image_ref.
+
+- To build the cleaned images folder, we loop through the images in the image folder, apply our resize function by adding the image onto a rgb background of pixel size 50 and resizing our image, and finally save the new images by their ids in the cleaned_images folder. For building the CNN image dataset, we use a different approach where we find the minimum size of all the images and change the aspect ratio to that (155x155) and then we ensure the channel is RGB. A code snippet is shown below of how it is done:
+
 
 ## Milestone 3: Create simple Machine Learning models
 
