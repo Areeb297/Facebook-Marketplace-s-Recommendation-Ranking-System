@@ -215,9 +215,44 @@ print(classification_report(y_test, y_pred))
 - The results are as follows:
 > Best parameters: {'solver': 'lbfgs', 'penalty': 'l2', 'max_iter': 400, 'C': 2.592943797404667}, the accuracy of our predictions: 15.20%
 
-## Milestone 4: Creating a pytorch vision CNN model from scratch
+## Milestone 4: Creating a pytorch vision CNN model (without and with transfer learning)
 
-- After testing with sklearn logistic regression, we use a CNN deep neural network to see our performance on the images we saved in higher pixel dimension (3x155x155). Firstly, we split the dataset into features and targets using the generate_features_targets function where we save the encoding of the targets/product categories into numbers to be able to decode the outputs afterward. We save the decoder file as image_decoder.pkl along with the feature and target files (pickle file format) as shown below:
+- After testing with logistic regression, we use a CNN deep neural network instead to inspect whether our performance improves on the images we saved in higher pixel dimension (3x154x154). Coming back to the image loader class we referred to earlier, this class uses the product_images.csv file to obtain the category codes (labels) and the image id which then is used to locate the corresponding image file with the same id in the cleaned_images folder. The image is then resized to 128x128 and centered to run the CNN model faster (even though we will use GPU) applied random horizontal flips on the data to generate more variety in the images for better model performance, converted the images to pytorch tensors, and normalized the three channels in the image (RGB). Given an index, our class will then return the desired image tensor with its label in tuple form (image_tensor, label) and we can apply the decoder dictionary if we want to see what class the image tensor belongs to. We can find the code in the 'image_loader.py' file where shown below are code snippets about the class:
+
+```python
+self.merged_data = pd.read_pickle('product_images.csv') # Get the products_images data we saved before from the merge.py file
+self.files = self.merged_data['image_id'] # get image id from the data
+self.labels = self.merged_data['category_codes'] # Finally get the labels/category codes
+self.decoder = pd.read_pickle('image_decoder.pkl') # read in the decoder dictionary save as a pickle file
+
+self.transform = transforms.Compose([ # the transformation pipeline an image goes through
+    transforms.Resize(128),
+    transforms.CenterCrop(128),
+    transforms.RandomHorizontalFlip(p=0.3),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], # 3 channels, 3 means
+                     std=[0.229, 0.224, 0.225]) # 3 channels, 3 standard deviations
+])
+
+label = self.labels[index] # get the label given an index from the whole data
+label = torch.as_tensor(label).long()
+image = Image.open('cleaned_images/' + self.files[index] + '.jpg') # get the corresponding image to the label
+image = self.transform(image).float() # we will use this class to load data in batches using the Dataloader module from pytorch
+
+# If we want to decode our image label, we use:
+dataset = ImageDataset() # initialize class
+dataset.decoder[int(dataset[0][1])] # the 0 corresponds to the image index, 1 corresponds to getting the label as the class returns a tuple (tensor, label)
+```
+- We define the dataloader function below which splits the data into train, test, and validation and returns them as dataloaders that will be looped through in batches of size 32. We first specify the training percentage, get the data, then subtract that from the whole data to get the test data. Finally, we define a validation percentage which we apply to the training data and split the data into training and validation. We use 0.1 of the training data as validation and 0.2 of the data as testing (0.8 for training). We then save these dataloaders as pickle files as we want to compare different models on the same training and test data. We utilize the GPU available to ensure we can run 20-30 epochs within only 10-15 minutes. All of the code shown in this milestone is available in the file 'transfer_learning_CNN.py'. Below, we examine further in code, how we obtained the training, validation (used for early stopping to prevent overfitting), and testing data:
+
+```python
+
+```
+
+
+
+
+
 
 
 ```python
@@ -343,14 +378,11 @@ Results:
 > 100%|██████████| 21/21 [05:32<00:00, 15.83s/it] \
 > Accuracy of the network on the test images: 10.0 %
 
+## Milestone 5: Create the text understanding model
 
-## Milestone 5: Implementing transfer learning with Resnet50
+## Milestone 6: Combine the models
 
-## Milestone 6: Create the text understanding model
-
-## Milestone 7: Combine the models
-
-## Milestone 8: Configure and deploy the model serving API
+## Milestone 7: Configure and deploy the model serving API
 
 - Does what you have built in this milestone connect to the previous one? If so explain how. What technologies are used? Why have you used them? Have you run any commands in the terminal? If so insert them using backticks (To get syntax highlighting for code snippets add the language after the first backticks).
 
