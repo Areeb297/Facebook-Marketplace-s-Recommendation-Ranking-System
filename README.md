@@ -491,11 +491,20 @@ def save_model(epoch, model, optimiser, val_acc, loss, weights_path):
 <img src='https://user-images.githubusercontent.com/51030860/184050916-6db819b9-b362-436c-947a-df3f9eba7e3d.png'>
 </p>
 
+- This demonstrates the power of transfer learning and how much time and effort we can save using pretrained models. Next we are going to build a text understanding deep learning CNN model where we create text embeddings for words and train the model to classify the product category by convolving over the embeddings.
+
 ## Milestone 5: Create the text understanding model
 
 ## Milestone 6: Combine the models
 
 ## Milestone 7: Configure and deploy the model serving API
+
+## Conclusions
+
+- Maybe write a conclusion to the project, what you understood about it and also how you would improve it or take it further.
+
+- Read through your documentation, do you understand everything you've written? Is everything clear and cohesive?
+
 
 - Does what you have built in this milestone connect to the previous one? If so explain how. What technologies are used? Why have you used them? Have you run any commands in the terminal? If so insert them using backticks (To get syntax highlighting for code snippets add the language after the first backticks).
 
@@ -518,9 +527,3 @@ def save_model(epoch, model, optimiser, val_acc, loss, weights_path):
 - Continue this process for every milestone, making sure to display clear understanding of each task and the concepts behind them as well as understanding of the technologies used.
 
 - Also don't forget to include code snippets and screenshots of the system you are building, it gives proof as well as it being an easy way to evidence your experience!
-
-## Conclusions
-
-- Maybe write a conclusion to the project, what you understood about it and also how you would improve it or take it further.
-
-- Read through your documentation, do you understand everything you've written? Is everything clear and cohesive?
