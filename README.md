@@ -264,7 +264,7 @@ def split_dataset(dataset, train, valid):
     valid_loader = DataLoader(validation, batch_size=32, shuffle=True)
     test_loader = DataLoader(test_data, batch_size=32, shuffle=False)
 ```
-<ins>CNN Without transfer learning:</ins>
+<ins>CNN without transfer learning:</ins>
 
 - Next we define our CNN class where we use 3 convolutional layers, having some max pooling of size 2x2 and connected with ReLU activation functions with a softmax function at the end to output probabilities of each class. The max pooling and dropout layers are present for regularisation and reduce number of parameters trained to reduce overfitting and run time. The code snippet that represents the deep learning architecture connected using torch Sequential module is shown below with a softmax function at the end to output probabilities:
 
@@ -371,7 +371,7 @@ print('Accuracy of the network on the test images: {} %'.format(acc))
 
 - In the next subsection, we will use transfer learning with Resnet 50 model which has been trained on 1000s of images prior and we will demonstrate the enormous impact it has on our results!
 
-<ins>CNN With transfer learning:</ins>
+<ins>CNN with transfer learning using Resnet50:</ins>
 
 - Before we go into showing out transfer learning model architecture, perhaps it is better to review the validation and test_accuracy function and how it displays the progress after using tqdm after every epoch. When using the validation or testing accuracy function, we change the mode of the model to evaluation which switches off the dropout and BatchNorm layers and additionally we turn off gradients computation using torch.no_grad() as this is all common practice. We then loop through either the validation dataloader or testing dataloader depending on the function, calculate predictions, loss (if we using validation only), append the losses and accuracy to a list, calculate mean accuracy, display on the tqdm progress bar. With the test_accuracy function, we do not append predictions to the list, rather just from the predictions, see how many match the actual values and calculate total accuracy. Shown below are some snippets from both functions where the whole functions can be found in the file 'transfer_learning_CNN.py':
 
@@ -406,7 +406,7 @@ def test_accuracy(test_loader, device, model):
     
     accuracy = torch.div(100 * correct.double(), total) # calculate accuracy using (corrects/total)*100
 ```
-- Now for transfer learning, everything reamins the same as before, we just need to change our model class. From torchvision.models, we obtain the resnet50 model, get the default (updated weights), we then freeze all the trainable parameters as we do not want to backpropogate through all layers as th weights from the initial layers are likely to be similar on any image classification problem. We can think of it as the earlier layers of the model can detect shapes like edges, lines etc which contribute to forming the whole image and thus the trained weights of these layers are crucial for success. We only set the trainable_weights parameter of the fully connected layer at the end and of layer 4 to be true. How we exactly do this is shown below:
+- Now for transfer learning, everything reamins the same as before, we just need to change our model class. From torchvision.models, we obtain the resnet50 model, get the default (updated weights), we then freeze all the trainable parameters as we do not want to backpropogate through all layers as th weights from the initial layers are likely to be similar on any image classification problem. We can think of it as the earlier layers of the model can detect shapes like edges, lines etc which contribute to forming the whole image and thus the trained weights of these layers are crucial for success. We essentially use the pretrained model as a feature extractor for our product image dataset to predict 13 categories. We only set the trainable_weights parameter of the fully connected layer at the end and of layer 4 to be true. How we exactly do this is shown below:
 
 ```python
 resnet50 = models.resnet50(weights=ResNet50_Weights.DEFAULT)
