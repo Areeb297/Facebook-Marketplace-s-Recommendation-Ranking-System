@@ -4,6 +4,7 @@ images/
 cleaned_images/
 runs/
 cleaned_images_ML/
+final_models/
 
 
 # Byte-compiled / optimized / DLL files
