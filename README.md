@@ -217,7 +217,7 @@ print(classification_report(y_test, y_pred))
 
 ## Milestone 4: Creating a pytorch vision CNN model (without and with transfer learning)
 
-<ins>2 - CNN without transfer learning:</ins>
+<ins>CNN without transfer learning:</ins>
 
 
 - After testing with logistic regression, we use a CNN deep neural network instead to inspect whether our performance improves on the images we saved in higher pixel dimension (3x154x154). Coming back to the image loader class we referred to earlier, this class uses the product_images.csv file to obtain the category codes (labels) and the image id which then is used to locate the corresponding image file with the same id in the cleaned_images folder. The image is then resized to 128x128 and centered to run the CNN model faster (even though we will use GPU) applied random horizontal flips on the data to generate more variety in the images for better model performance, converted the images to pytorch tensors, and normalized the three channels in the image (RGB). Given an index, our class will then return the desired image tensor with its label in tuple form (image_tensor, label) and we can apply the decoder dictionary if we want to see what class the image tensor belongs to. We can find the code in the 'image_loader.py' file where shown below are code snippets about the class:
@@ -293,9 +293,9 @@ self.layers = torch.nn.Sequential(
 )
 ```
 
-Furthermore, apart from defining functions and classes for employing early stopping (shown below) and calculating training, validation loss and testing accuracy, we use the tensorboard library to plot graphs of the validation and training losses to visually inspect the change in loss with respect to every batch or epoch. Lastly, we do not expect a high accuracy as we only run our model for 20 epochs and to learn the patterns in our image dataset would require hours of training with multiple GPUs if we want to train a CNN from scratch. 
+- Furthermore, apart from defining functions and classes for employing early stopping (shown below) and calculating training, validation loss and testing accuracy, we use the tensorboard library to plot graphs of the validation and training losses to visually inspect the change in loss with respect to every batch or epoch. Lastly, we do not expect a high accuracy as we only run our model for 20 epochs and to learn the patterns in our image dataset would require hours of training with multiple GPUs if we want to train a CNN from scratch. 
 
-Here is a code snippet to show how our early stopping class is defined where it checks the average validation loss after every epoch and if it keeps increasing continually, the training function stops and returns the model:
+- Here is a code snippet to show how our early stopping class is defined where it checks the average validation loss after every epoch and if it keeps increasing continually, the training function stops and returns the model:
 
 ```python
 
@@ -315,64 +315,63 @@ class EarlyStopping():
             self.counter = 0 # if the next epoch has lower validation, counter goes back to zero
 ```
 
-Shown below are code snippets from the transfer_learning_CNN.py file displaying what steps our train function goes through to train model parameters based on cross entropy loss (multiclassification) where to summarize, the training function saves the model weights after every epoch in the 'model_evaluation' folder and the best model parameters in the 'final_models' directory. The model uses the adam optimizer due it being computationally efficient, requiring less memory space (fewer parameters) and working well with large datasets. 
+- Shown below are code snippets from the transfer_learning_CNN.py file displaying what steps our train function goes through to train model parameters based on cross entropy loss (multiclassification) where to summarize, the training function saves the model weights after every epoch in the 'model_evaluation' folder and the best model parameters in the 'final_models' directory. The model uses the adam optimizer due it being computationally efficient, requiring less memory space (fewer parameters) and working well with large datasets. We start with a learning rate of 3e-4 which is widely used for adam. We used tqdm to show a  progress bar when going through each batch but tensorboard does a better job in visualizing losses.
 
 ```python
- # Early stopping
-early_stopping = EarlyStopping(patience=6)
-last_loss = np.inf
-# patience = 2
-# triggertimes = 0
+# Set device to cuda if there is gpu, otherwise we use cpu
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-optimiser = torch.optim.SGD(model.parameters(), lr=0.009)
-# weight decay adds penalty to loss function, shrinks weights during backpropagation to prevent overfitting and exploding gradients
-batch_idx = 0
-
-for epoch in tqdm(range(epochs+1)):
-    loss_per_epoch = 0
-    model.train()
-    for i, batch in enumerate(train_loader):
-        features, labels = batch
-        features, labels = features.to(device), labels.to(device)
-        prediction = model(features)
-        loss = F.cross_entropy(prediction, labels)
-        loss.backward()
-
-        if i % 10 == 0:
-            print(f'Loss: {loss.item()}') # print loss every 10th value in batch
-
-        optimiser.step()
-        optimiser.zero_grad() # update model parameters or weights
-        # exp_lr_scheduler.step()
-        writer.add_scalar('Training Loss', loss.item(), batch_idx)
-        loss_per_epoch += loss.item()
-        batch_idx += 1
-
-    print(f'epoch number {epoch} with average loss: {loss_per_epoch / len(train_loader)}')
-
-
+# This is only a snippet of the actual train function
+def train(model, device, train_loader, valid_loader, epochs=50): # We use 25 epochs 
     # Early stopping
-    validation_loss = validation(model, device, valid_loader, F.cross_entropy) 
-    early_stopping(last_loss, validation_loss)
-    last_loss = validation_loss
-
-
-    if early_stopping.early_stop:
-        print("We are at epoch:", epoch) # stop if model overfits (validation loss continues to increase)
-        return model
-
+    early_stopping = EarlyStopping(patience=9) # Choose a patience of 9 so we know for sure validation is not going to decrease again
+    optimiser = torch.optim.Adam(model.parameters(), lr=3e-4)
+    writer = SummaryWriter() # For tensorboard
+    for epoch in range(epochs+1):
+        progress_bar = tqdm(enumerate(train_loader), total=len(train_loader))
+        hist_acc = [] 
+        for _, (features, labels) in progress_bar:
+            features, labels = features.to(device), labels.to(device) # put them on gpu
+            # zero the parameter gradients
+            optimiser.zero_grad()
+            # calcuate accuracy, we will calculate mean by using np.mean
+            accuracy = (torch.sum(torch.argmax(prediction, dim=1) == labels).item()) / len(labels)
+            hist_acc.append(accuracy)
+            loss = F.cross_entropy(prediction, labels)
+            loss.backward()  # backward + optimize only if in training phase
+            optimiser.step()
+            # We add to the progress bar: #epochs, train_acc, avg_train_acc/epoch
+            progress_bar.set_description(f"Epoch = {epoch}/{epochs}. acc = {round(float(accuracy), 2)}. mean_train_acc = {round(np.mean(hist_acc), 2)}. Loss = {round(float(loss), 2)}")
+            writer.add_scalar('Training Loss', loss.item(), batch_idx) # add training loss to tensorboard
+            
+        validation_loss_per_epoch, val_acc = validation(model, device, valid_loader, F.cross_entropy) # calculate validation loss using defined function
+        early_stopping(last_loss, validation_loss_per_epoch) # check for early stopping
+        
+        # Only save the best performing model (best accuracy on validation set)
+        if val_acc > prev_val_acc:
+            prev_val_acc = val_acc
+            torch.save({'model_state_dict': copy.deepcopy(model.state_dict())}, f'{final_models_path}/image_model.pt')
+            
+# At the end, we use the accuracy function to print out test accuracy:
+acc = test_accuracy(test_loader, device, model_cnn)
+print('Accuracy of the network on the test images: {} %'.format(acc))
 ```
-Moreover, shown below are the training and validation loss plots from tensorboard which clearly shows the trend of loss decreasing with every increasing epoch:
+- Moreover, shown below are the training and validation loss plots from tensorboard of the training of a CNN from scratch which clearly shows the trend of loss decreasing with every increasing epoch:
 
 <p align="center">
 <img src='https://user-images.githubusercontent.com/51030860/183224538-728fa7d0-b2e0-47dc-9fbc-e7559a1160b4.png'>
 </p>
 
-Results:
+- We display how the tqdm shows the updated results during batch training for training and validation data and after every epoch:
 
-> Epoch number 20 with average loss: 2.5741783587012703 \
-> 100%|██████████| 21/21 [05:32<00:00, 15.83s/it] \
-> Accuracy of the network on the test images: 10.0 %
+<p align="center">
+<img src='https://user-images.githubusercontent.com/51030860/184045503-5e42364c-1b58-446c-8143-3dd9e56a8d24.png'>
+</p>
+
+We see that after training, we got training accuracy as only 32% and testing accuracy as 23.5% which is better than logistic regression model we had, however it is not sufficient to progress further with and we do require more epochs of training. We could train further, pay for extra GPUs and train in the cloud or we can save both time and money and use transfer learning. 
+
+In the next subsection, we will use transfer learning with Resnet 50 model which has been trained on 1000s of images prior and we will demonstrate the enormous impact it has on our results!
+
 
 ## Milestone 5: Create the text understanding model
 
