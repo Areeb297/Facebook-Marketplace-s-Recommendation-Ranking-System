@@ -359,7 +359,7 @@ print('Accuracy of the network on the test images: {} %'.format(acc))
 - Moreover, shown below are the training and validation loss plots from tensorboard of the training of a CNN from scratch which clearly shows the trend of loss decreasing with every increasing epoch:
 
 <p align="center">
-<img src='https://user-images.githubusercontent.com/51030860/183224538-728fa7d0-b2e0-47dc-9fbc-e7559a1160b4.png'>
+<img src='https://user-images.githubusercontent.com/51030860/184046411-d391de5b-69ed-47c5-aaeb-b7fe2bfdc182.png'>
 </p>
 
 - We display how the tqdm shows the updated results during batch training for training and validation data and after every epoch:
@@ -368,9 +368,9 @@ print('Accuracy of the network on the test images: {} %'.format(acc))
 <img src='https://user-images.githubusercontent.com/51030860/184045503-5e42364c-1b58-446c-8143-3dd9e56a8d24.png'>
 </p>
 
-We see that after training, we got training accuracy as only 32% and testing accuracy as 23.5% which is better than logistic regression model we had, however it is not sufficient to progress further with and we do require more epochs of training. We could train further, pay for extra GPUs and train in the cloud or we can save both time and money and use transfer learning. 
+- We see that after training, we got training accuracy as only 32% and testing accuracy as 23.5% which is better than logistic regression model we had, however it is not sufficient to progress further with and we do require more epochs of training. We could train further, pay for extra GPUs and train in the cloud or we can save both time and money and use transfer learning. 
 
-In the next subsection, we will use transfer learning with Resnet 50 model which has been trained on 1000s of images prior and we will demonstrate the enormous impact it has on our results!
+- In the next subsection, we will use transfer learning with Resnet 50 model which has been trained on 1000s of images prior and we will demonstrate the enormous impact it has on our results!
 
 
 ## Milestone 5: Create the text understanding model
