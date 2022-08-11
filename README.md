@@ -449,8 +449,9 @@ for epoch in range(epochs+1):
 - Before we discuss results, in the train function, we save model weights after every epoch into the model evaluation folder where every folder inside represents a different model run and we programtically generate these with unique names using timestamps of when the models were run to keep track of our model runs and results. We only save a model after an epoch if the validation accuray has decreased from the previous epoch. Once we reach the best model, we save that model in the final_models directory as 'image_model.pt'. Shown below is how we create these folders and save the model weights:
 
 ```python
-ct = datetime.datetime.now()
-timestamp = ct.ctime().split()[-2].replace(':', '-')
+ct = datetime.datetime.now() # use datetime library to get timestamp of when a model was run to get a 
+# unique file name save the model weights in of every epoch
+timestamp = ct.ctime().split()[-2].replace(':', '-') # we replace the : e.g. 20:12:50 by 20-12-50 to have a valid file name
 # save weights at the end of every epoch
 eval_path = 'model_evaluation'
 
@@ -469,8 +470,6 @@ if val > prev_accuracy:
     torch.save({'model_state_dict': copy.deepcopy(model.state_dict())}, f'{final_models_path}/image_model.pt') # keep overwriting until reach best
 
 # the save_model function: 
-
-        
 def save_model(epoch, model, optimiser, val_acc, loss, weights_path):
     model.to('cpu')
     torch.save({
@@ -481,6 +480,16 @@ def save_model(epoch, model, optimiser, val_acc, loss, weights_path):
         'training+loss': loss}, os.path.join(weights_path, f'epoch_{epoch}_results'))
 
 ```
+
+- Now for the results, we see an incredible jump in performance where in just only 3-4 epochs of training, we get above 90% training accuracy and within 10-20 epochs, we have nearly 60% validation accuracy. Our goal is to have atleast 60% accuracy on testing data which is what we achieve - 62.1%. Our validation dataset is small as it only used for early stopping and thus not used for calculating accuracy. Below, we display the tqdm progress bar during training and the tensorboard graphs of loss and validation accuracy where although we see an increase in validation loss, it is not a continuous one as our early stopping function has not stopped the model from training:
+
+<p align="center">
+<img src='https://user-images.githubusercontent.com/51030860/184050467-7b8cdf98-5e4b-4cf2-9dfd-c6536945fcea.png'>
+</p>
+
+<p align="center">
+<img src='https://user-images.githubusercontent.com/51030860/184050916-6db819b9-b362-436c-947a-df3f9eba7e3d.png'>
+</p>
 
 ## Milestone 5: Create the text understanding model
 
