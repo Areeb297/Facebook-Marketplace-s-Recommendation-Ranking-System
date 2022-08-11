@@ -76,7 +76,6 @@ class EarlyStopping():
             self.counter = 0
 
 
-
 # Testing our model to calculate accuracy
 def test_accuracy(test_loader, device, model):
     """This function loops through the test data, calculates predictions, locates classes with max probability,
@@ -146,6 +145,40 @@ class Classifier(torch.nn.Module):
         x = self.main(input)
         return x
 
+# CNN model trained from scratch 
+# class CNN(torch.nn.Module):
+#     """This CNN class uses the torch Sequential module to build layers of the neural network which includes 
+#     convolutional layers, dropout layers, max pooling layers, a linear layer with ReLU as activation functions, and
+#     softmax being used at the end to output probabilities of each class in the dataset."""
+
+#     def __init__(self):
+#         super().__init__()
+#         # Declaring the Architecture
+#         self.layers = torch.nn.Sequential(
+#             torch.nn.Conv2d(3, 200, 5, 2), # Kernel size 7 with stride 2
+#             torch.nn.MaxPool2d(4,4),
+#             torch.nn.ReLU(),
+            
+#             torch.nn.Conv2d(200, 100, 3),
+#             # torch.nn.MaxPool2d(2, 2), # Max pooling (2, 2) filter
+#             torch.nn.Dropout(p=0.2),
+#             torch.nn.ReLU(),
+
+#             torch.nn.Conv2d(100, 50, 3),
+#             torch.nn.MaxPool2d(2, 2),
+#             torch.nn.Dropout(p=0.3),
+#             torch.nn.ReLU(),
+
+#             torch.nn.Flatten(),
+#             torch.nn.Linear(1250, 100),
+#             torch.nn.Linear(100, 13), #  Predicting 13 product categories
+#             torch.nn.Softmax(dim=1)
+#         )
+
+#     def forward(self, features):  
+#         """Returns prediction on the features using the defined neural network""" 
+#         return self.layers(features)
+
 def validation(model, device, valid_loader, loss_function):
     """This function uses the CNN model to evaluate the loss on the validation data every certain epochs
 
@@ -194,7 +227,7 @@ def train(model, device, train_loader, valid_loader, epochs=10):
         valid_loader (DataLoader): Validation data
         epochs (int): Number of times we loop through training data to improve our model parameters
 
-    Returns:
+    Returns:    
         model (Model): Trained CNN model
     """
      # Early stopping
@@ -216,8 +249,8 @@ def train(model, device, train_loader, valid_loader, epochs=10):
             os.mkdir(path)
             
 
-    optimiser = torch.optim.Adam(model.parameters(), lr=5e-4)
-    exp_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimiser, step_size=4, gamma=0.03)
+    optimiser = torch.optim.Adam(model.parameters(), lr=3e-4)
+    exp_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimiser, step_size=2, gamma=0.6)
     # weight decay adds penalty to loss function, shrinks weights during backpropagation to prevent overfitting and exploding gradients
     writer = SummaryWriter()
     batch_idx = 0
@@ -230,9 +263,11 @@ def train(model, device, train_loader, valid_loader, epochs=10):
         progress_bar = tqdm(enumerate(train_loader), total=len(train_loader))
         hist_acc = [] 
         model.train()
-        for i, (features, labels) in progress_bar:
+        for _, (features, labels) in progress_bar:
             features, labels = features.to(device), labels.to(device)
             prediction = model(features)
+            # zero the parameter gradients
+            optimiser.zero_grad()
 
             accuracy = (torch.sum(torch.argmax(prediction, dim=1) == labels).item()) / len(labels)
             hist_acc.append(accuracy)
@@ -241,10 +276,8 @@ def train(model, device, train_loader, valid_loader, epochs=10):
             _, preds = torch.max(prediction, 1)
             loss.backward()
 
-
+            # backward + optimize only if in training phase
             optimiser.step()
-            optimiser.zero_grad()
-            # exp_lr_scheduler.step()
             writer.add_scalar('Training Loss', loss.item(), batch_idx)
 
             batch_idx += 1
@@ -252,7 +285,7 @@ def train(model, device, train_loader, valid_loader, epochs=10):
             total += labels.size(0)
             progress_bar.set_description(f"Epoch = {epoch}/{epochs}. acc = {round(float(accuracy), 2)}. mean_train_acc = {round(np.mean(hist_acc), 2)}. Loss = {round(float(loss), 2)}")
 
-
+        exp_lr_scheduler.step()
         # Early stopping
         validation_loss_per_epoch, val_acc = validation(model, device, valid_loader, F.cross_entropy) 
         writer.add_scalar('Validation Loss', validation_loss_per_epoch, batch_idx)
@@ -260,7 +293,6 @@ def train(model, device, train_loader, valid_loader, epochs=10):
         early_stopping(last_loss, validation_loss_per_epoch)
         last_loss = validation_loss_per_epoch
 
-        exp_lr_scheduler.step()
         
         # ct stores current time
         ct = datetime.datetime.now()
@@ -293,6 +325,18 @@ def train(model, device, train_loader, valid_loader, epochs=10):
     return model
         
 def save_model(epoch, model, optimiser, val_acc, loss, weights_path):
+    """This function changes model to cpu mode, saves the model weights, epoch we reached, optimizer details,
+    validation accuracy and the training loss so we can restore any model if we want to explore and compare results later on.
+
+    Args:
+        epoch (int): Number of epoch we reached at the end of training
+        model (torchvision.models): Model our training function returned
+        optimiser (torch.optim): Optimiser we used to train
+        val_acc (float): Average validation accuracy per epoch at the end of training
+        loss (float): Average training loss per epoch 
+        weights_path (str): The path to the weights folder contained in the model evaluation directory
+
+    """
     
     model.to('cpu')
     torch.save({
@@ -332,6 +376,6 @@ if __name__ == '__main__':
 
         model = Classifier(ngpu=ngpu, num_classes=num_classes)
         model.to(device)
-        model_cnn = train(model, device, train_loader, valid_loader, epochs=30)
+        model_cnn = train(model, device, train_loader, valid_loader, epochs=20)
         acc = test_accuracy(test_loader, device, model_cnn)
         print('Accuracy of the network on the test images: {} %'.format(acc))
