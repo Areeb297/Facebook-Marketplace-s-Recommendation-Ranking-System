@@ -264,7 +264,7 @@ def split_dataset(dataset, train, valid):
     valid_loader = DataLoader(validation, batch_size=32, shuffle=True)
     test_loader = DataLoader(test_data, batch_size=32, shuffle=False)
 ```
-<ins>CNN without transfer learning:</ins>
+<ins>CNN Without transfer learning:</ins>
 
 - Next we define our CNN class where we use 3 convolutional layers, having some max pooling of size 2x2 and connected with ReLU activation functions with a softmax function at the end to output probabilities of each class. The max pooling and dropout layers are present for regularisation and reduce number of parameters trained to reduce overfitting and run time. The code snippet that represents the deep learning architecture connected using torch Sequential module is shown below with a softmax function at the end to output probabilities:
 
@@ -371,6 +371,116 @@ print('Accuracy of the network on the test images: {} %'.format(acc))
 
 - In the next subsection, we will use transfer learning with Resnet 50 model which has been trained on 1000s of images prior and we will demonstrate the enormous impact it has on our results!
 
+<ins>CNN With transfer learning:</ins>
+
+- Before we go into showing out transfer learning model architecture, perhaps it is better to review the validation and test_accuracy function and how it displays the progress after using tqdm after every epoch. When using the validation or testing accuracy function, we change the mode of the model to evaluation which switches off the dropout and BatchNorm layers and additionally we turn off gradients computation using torch.no_grad() as this is all common practice. We then loop through either the validation dataloader or testing dataloader depending on the function, calculate predictions, loss (if we using validation only), append the losses and accuracy to a list, calculate mean accuracy, display on the tqdm progress bar. With the test_accuracy function, we do not append predictions to the list, rather just from the predictions, see how many match the actual values and calculate total accuracy. Shown below are some snippets from both functions where the whole functions can be found in the file 'transfer_learning_CNN.py':
+
+```python
+def validation(model, device, valid_loader, loss_function):
+    val_loss = []
+    model.eval()
+    with torch.no_grad():
+        progress_bar = tqdm(enumerate(valid_loader), total=len(valid_loader))
+        for _, (features, labels) in progress_bar:
+            output = model(features)
+            loss = loss_function(output, labels)
+            # calculate accuracy and append
+            accuracy = (torch.sum(torch.argmax(output, dim=1) == labels).item()) / len(labels)
+            hist_val_acc.append(accuracy)
+            # show values on progress bar after every batch and it will keep updating similar to what we saw in the train function above
+            progress_bar.set_description(f"Validation metrics: acc = {round(float(accuracy), 2)}. mean_val_acc = {round(np.mean(hist_val_acc), 2)}.                       mean_val_loss = {round(np.mean(hist_val_loss), 2)}")
+            
+# Similary with the testing_accuracy function:
+def test_accuracy(test_loader, device, model):
+    model.eval()
+    correct = 0
+    total = 0
+    # since we're not training, we don't need to calculate the gradients for our outputs
+    with torch.no_grad():
+        for data in test_loader:
+            images, labels = data
+            outputs = model(images)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += torch.sum(predicted == labels.data) # see how many predicted are the same as true values and add to number of corrects
+    
+    accuracy = torch.div(100 * correct.double(), total) # calculate accuracy using (corrects/total)*100
+```
+- Now for transfer learning, everything reamins the same as before, we just need to change our model class. From torchvision.models, we obtain the resnet50 model, get the default (updated weights), we then freeze all the trainable parameters as we do not want to backpropogate through all layers as th weights from the initial layers are likely to be similar on any image classification problem. We can think of it as the earlier layers of the model can detect shapes like edges, lines etc which contribute to forming the whole image and thus the trained weights of these layers are crucial for success. We only set the trainable_weights parameter of the fully connected layer at the end and of layer 4 to be true. How we exactly do this is shown below:
+
+```python
+resnet50 = models.resnet50(weights=ResNet50_Weights.DEFAULT)
+for param in resnet50.parameters(): 
+    param.requires_grad = False # Freeze all layers
+
+# unfreeze last layer params and of fully connected (fc) layer at the end which flattens the torch tensor
+for param in resnet50.fc.parameters():
+    param.requires_grad = True
+
+for param in resnet50.layer4.parameters():
+    param.requires_grad = True
+```
+
+- Subsequently, we add a linear layer at the end of the resnet model to output only 13 predictions and we use the Sequential module to build the pipeline:
+```python
+out_features = resnet50.fc.out_features
+self.linear =torch.nn.Linear(out_features, num_classes).to(device)
+self.main = torch.nn.Sequential(resnet50, self.linear).to(device)
+
+# Here is the forward method in the Classifier class (transfer learning) that applies the resnet model and linear layer to our features:
+def forward(self, features):
+    """Returns prediction on the features using the defined neural network"""
+    features = self.main(features)
+    return features
+```
+- An addition to the training function when running transfer learning is using lr_scheduler.StepLR which decreases the learning rate after every certain number of epochs. We chose a learning rate of 3e-4 again but after every 2 epochs, we decrease by a factor of 0.6 (gamma=0.6). With transfer learning, it is very easy to overfit the model quickly and additionally, we do not want to change the weights too much of the resnet layers which we allowed to train. So we keep a low learning rate and keep decreasing it over time. This time, instead of 50 epochs, we will just train for 20 epochs and will notice a massive jump.
+
+```python
+exp_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimiser, step_size=2, gamma=0.6)
+for epoch in range(epochs+1):
+    for features, labels in train_loader:
+        optimiser.zero_grad()
+        loss.backward()
+        optimiser.step()
+
+    exp_lr_scheduler.step() # after every epoch, see if we completed 2 epochs, then lower learning rate by 0.6
+```
+
+- Before we discuss results, in the train function, we save model weights after every epoch into the model evaluation folder where every folder inside represents a different model run and we programtically generate these with unique names using timestamps of when the models were run to keep track of our model runs and results. We only save a model after an epoch if the validation accuray has decreased from the previous epoch. Once we reach the best model, we save that model in the final_models directory as 'image_model.pt'. Shown below is how we create these folders and save the model weights:
+
+```python
+ct = datetime.datetime.now()
+timestamp = ct.ctime().split()[-2].replace(':', '-')
+# save weights at the end of every epoch
+eval_path = 'model_evaluation'
+
+model_filename = f'model_{timestamp}'
+model_path = f'{eval_path}/{model_filename}'
+final_models_path = 'final_models'
+paths = [eval_path, model_path, final_models_path]
+
+weights_path = model_path + '/weights'
+
+if not os.path.exists(weights_path):
+    os.mkdir(weights_path)
+
+if val > prev_accuracy:
+    save_model(epoch, model, optimiser, val_acc, loss, weights_path) # save in the model evaluation folder
+    torch.save({'model_state_dict': copy.deepcopy(model.state_dict())}, f'{final_models_path}/image_model.pt') # keep overwriting until reach best
+
+# the save_model function: 
+
+        
+def save_model(epoch, model, optimiser, val_acc, loss, weights_path):
+    model.to('cpu')
+    torch.save({
+        'epoch': epoch,
+        'model_state_dict': copy.deepcopy(model.state_dict()),
+        'optimizer_state_dict': optimiser.state_dict(),
+        'validation_acc': val_acc,
+        'training+loss': loss}, os.path.join(weights_path, f'epoch_{epoch}_results'))
+
+```
 
 ## Milestone 5: Create the text understanding model
 
