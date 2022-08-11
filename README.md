@@ -491,7 +491,17 @@ def save_model(epoch, model, optimiser, val_acc, loss, weights_path):
 <img src='https://user-images.githubusercontent.com/51030860/184050916-6db819b9-b362-436c-947a-df3f9eba7e3d.png'>
 </p>
 
-- This demonstrates the power of transfer learning and how much time and effort we can save using pretrained models. Next we are going to build a text understanding deep learning CNN model where we create text embeddings for words and train the model to classify the product category by convolving over the embeddings.
+- This demonstrates the power of transfer learning and how much time and effort we can save using pretrained models. Lastly, we a script called image_processor.py that will take in an image and apply the transformations needed to the image to be fed to the model. What we did in our project was convert to RGB, resize to 3x128x18, center crop, randomly perform a horizontal flip with a probability of 0.3, convert to tensor and normalize. We just need to add a dimension to the beginning of the image to make it a batch of size 1, so that the model can process it as our model was trained to process the images in batches. We do this by the following steps found in the 'image_processor.py' file:
+
+```python
+if image.mode != 'RGB':
+    image = image.convert('RGB')
+image = self.transform(image)
+image = image[None, :, :, :]
+image = image.reshape(1, 3, 128, 128)
+```
+
+- Next we are going to build a text understanding deep learning CNN model where we create text embeddings for words and train the model to classify the product category by convolving over the embeddings.
 
 ## Milestone 5: Create the text understanding model
 
