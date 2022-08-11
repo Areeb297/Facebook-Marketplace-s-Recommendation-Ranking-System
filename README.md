@@ -215,10 +215,7 @@ print(classification_report(y_test, y_pred))
 - The results are as follows:
 > Best parameters: {'solver': 'lbfgs', 'penalty': 'l2', 'max_iter': 400, 'C': 2.592943797404667}, the accuracy of our predictions: 15.20%
 
-## Milestone 4: Creating a pytorch vision CNN model (without and with transfer learning)
-
-<ins>CNN without transfer learning:</ins>
-
+## Milestone 4: Creating a pytorch vision CNN model (with and without transfer learning)
 
 - After testing with logistic regression, we use a CNN deep neural network instead to inspect whether our performance improves on the images we saved in higher pixel dimension (3x154x154). Coming back to the image loader class we referred to earlier, this class uses the product_images.csv file to obtain the category codes (labels) and the image id which then is used to locate the corresponding image file with the same id in the cleaned_images folder. The image is then resized to 128x128 and centered to run the CNN model faster (even though we will use GPU) applied random horizontal flips on the data to generate more variety in the images for better model performance, converted the images to pytorch tensors, and normalized the three channels in the image (RGB). Given an index, our class will then return the desired image tensor with its label in tuple form (image_tensor, label) and we can apply the decoder dictionary if we want to see what class the image tensor belongs to. We can find the code in the 'image_loader.py' file where shown below are code snippets about the class:
 
@@ -267,6 +264,8 @@ def split_dataset(dataset, train, valid):
     valid_loader = DataLoader(validation, batch_size=32, shuffle=True)
     test_loader = DataLoader(test_data, batch_size=32, shuffle=False)
 ```
+<ins>CNN without transfer learning:</ins>
+
 - Next we define our CNN class where we use 3 convolutional layers, having some max pooling of size 2x2 and connected with ReLU activation functions with a softmax function at the end to output probabilities of each class. The max pooling and dropout layers are present for regularisation and reduce number of parameters trained to reduce overfitting and run time. The code snippet that represents the deep learning architecture connected using torch Sequential module is shown below with a softmax function at the end to output probabilities:
 
 ```python
