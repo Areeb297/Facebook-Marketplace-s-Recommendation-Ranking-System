@@ -505,6 +505,12 @@ image = image.reshape(1, 3, 128, 128)
 
 ## Milestone 5: Create the text understanding model
 
+- Similar to image classification, we need a dataloader class to transform text from the product description column into tensors to be able to input and train that in a CNN model. Therefore, our first python script contains the Textloader class which firstly reads in the product_images.csv file containing the cleaned and merged products and images data we saved from before. Subsequently, we remove duplicate rows that have the same product description and category as now, we do not need the image id column and since every product has at least one image or more, there are several rows with duplicate rows with just the image id being unique. We then load in the pretrained Bert tokenizer and model to convert every product description into tokens and then the Bert model creates the needed word embeddings after which we transform them into torch.tensor type with vector size 768 for every token and maximum length or number of tokens set to 50 per sequence or description. The class then finally returns indexed production description and its corresponding category code (loaded from saved pickle file from before 'image_decoder.pkl') in tuple form. Shown below are code snippets from the text_loader_bert.py file and the sample output it generates given an index:
+
+
+
+
+
 ## Milestone 6: Combine the models
 
 ## Milestone 7: Configure and deploy the model serving API
