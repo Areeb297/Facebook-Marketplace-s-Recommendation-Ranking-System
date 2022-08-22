@@ -3,6 +3,10 @@ from torchvision import transforms
 # from PIL import Image
 
 class ImageProcessor():
+    '''
+    The class taken in an image, transforms the image in the same fashion as our training and evaluation data so it can be fed to our
+    CNN model to output a prediction relating to which product category it belongs to
+    '''
     def __init__(self):
         self.transform = transforms.Compose([
         transforms.Resize(128), # change from 155 to 128
