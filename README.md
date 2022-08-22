@@ -507,6 +507,30 @@ image = image.reshape(1, 3, 128, 128)
 
 - Similar to image classification, we need a dataloader class to transform text from the product description column into tensors to be able to input and train that in a CNN model. Therefore, our first python script contains the Textloader class which firstly reads in the product_images.csv file containing the cleaned and merged products and images data we saved from before. Subsequently, we remove duplicate rows that have the same product description and category as now, we do not need the image id column and since every product has at least one image or more, there are several rows with duplicate rows with just the image id being unique. We then load in the pretrained Bert tokenizer and model to convert every product description into tokens and then the Bert model creates the needed word embeddings after which we transform them into torch.tensor type with vector size 768 for every token and maximum length or number of tokens set to 50 per sequence or description. The class then finally returns indexed production description and its corresponding category code (loaded from saved pickle file from before 'image_decoder.pkl') in tuple form. Shown below are code snippets from the text_loader_bert.py file and the sample output it generates given an index:
 
+```python
+root_dir = 'product_images.csv'
+self.merged_data = pd.read_csv(root_dir)
+self.merged_data.drop_duplicates(subset=['product_description', 'category_codes'], inplace=True) #  not using image id anymore so we can drop duplicate rows
+self.description = self.merged_data['product_description'].to_list()
+self.labels = self.merged_data['category_codes'].to_list()
+
+self.decoder = pd.read_pickle('image_decoder.pkl') # read in the decoder file which we saved from image classification
+
+self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased') # Get the pretrained Bert Tokenizer class
+self.model = BertModel.from_pretrained('bert-base-uncased', output_hidden_states=True) # Bert Model
+self.max_length = max_length 
+
+label = self.labels[index] # get an index
+label = torch.as_tensor(label).long()   
+description = self.description[index]
+encoded = self.tokenizer.batch_encode_plus([description], max_length=self.max_length, padding='max_length', truncation=True) # Tokenize
+encoded = {key: torch.LongTensor(value) for key, value in encoded.items()} # Convert to tensor 
+
+with torch.no_grad():
+    description = self.model(**encoded).last_hidden_state.swapaxes(1,2) # encode to word embeddings
+# More code in the actual python file (text_loader_bert.py)
+return description, label
+```
 
 
 
