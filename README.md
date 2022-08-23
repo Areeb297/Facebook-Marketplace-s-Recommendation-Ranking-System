@@ -568,10 +568,6 @@ self.main = torch.nn.Sequential(torch.nn.Conv1d(input_size, 256, kernel_size=3, 
 </p>
 
 <p align="center">
-<img src='https://user-images.githubusercontent.com/51030860/186058527-e394f846-b398-47db-baa7-ff6d9b890e20.png'>
-</p>
-
-<p align="center">
 <img src='https://user-images.githubusercontent.com/51030860/186058931-27080421-5fa8-4489-9127-9afec4fb1077.png'>
 </p>
 
