@@ -16,7 +16,7 @@ class TextProcessor():
         max_length (int): Maximum length of number of tokens generated in every description
 
     '''
-    def __init__(self, max_length=50):
+    def __init__(self, max_length=20):
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
         self.model = BertModel.from_pretrained('bert-base-uncased', output_hidden_states=True)
         self.model.eval()
@@ -37,8 +37,58 @@ class TextProcessor():
         description = description.reshape(1, -1, self.max_length)
         return description
                 
+# class Classifier(torch.nn.Module):
+#     """This CNN class uses the torch Sequential module to build layers of the text data neural network which includes 
+#     convolutional layers, dropout layers, max pooling layers, linear layers with ReLU as activation functions, with
+#     the last layer having 13 outputs for each category class in the dataset.
+    
+#     Args:
+#         ngpu (int): The number of CPU cores to use for training
+#         num_classes (int): The number of classes to predict by the trained model
+#         input_size (int): The input dimension fed into first Convolutional layer
+    
+#     """
+
+#     def __init__(self, ngpu, num_classes=13, input_size=768):
+#         super(Classifier, self).__init__()
+#         self.ngpu = ngpu
+#         self.main = torch.nn.Sequential(torch.nn.Conv1d(input_size, 256, kernel_size=3, stride=1, padding=1),
+#                                   torch.nn.ReLU(),
+#                                   torch.nn.MaxPool1d(kernel_size=2, stride=2),
+#                                   torch.nn.Conv1d(256, 128, kernel_size=3, stride=1, padding=1),
+#                                   torch.nn.ReLU(),
+#                                   torch.nn.MaxPool1d(kernel_size=2, stride=2),
+#                                   torch.nn.Dropout(p=0.2),
+#                                   torch.nn.Conv1d(128, 64, kernel_size=3, stride=1, padding=1),
+#                                   torch.nn.Dropout(p=0.2),
+#                                   torch.nn.ReLU(),
+#                                   torch.nn.MaxPool1d(kernel_size=2, stride=2),
+#                                   torch.nn.Dropout(p=0.2),
+#                                   torch.nn.ReLU(),
+#                                   torch.nn.Flatten(),
+#                                   torch.nn.Linear(128 , 64),
+#                                   torch.nn.ReLU(),
+#                                   torch.nn.Linear(64, num_classes))
+#     def forward(self, input):
+#         """Returns prediction on the features using the defined neural network"""
+#         x = self.main(input)
+#         return x
+
 # if __name__ == '__main__':
-#     sample_text = 'This is a new sentence relating to product category bicycle'
+#     sample_text = 'This is a new sentence relating to product category bicycle with 2 wheels only'
 #     process = TextProcessor()
 #     description = process(sample_text)
-#     print(description.shape)
+#     model = Classifier(ngpu=2, num_classes=13)
+#     checkpoint = torch.load('text_model.pt')
+#     model.load_state_dict(checkpoint['model_state_dict'])
+#     device = torch.device('cpu')
+#     model.to(device)
+#     model.eval()
+#     decoder = pd.read_pickle('image_decoder.pkl')
+#     output = model(description)
+#     _, predicted = torch.max(output.data, 1)
+#     pred = decoder[int(predicted)]
+#     print(pred)
+
+
+    
