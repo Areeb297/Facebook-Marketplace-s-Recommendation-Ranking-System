@@ -564,7 +564,7 @@ self.main = torch.nn.Sequential(torch.nn.Conv1d(input_size, 256, kernel_size=3, 
 </p>
 
 <p align="center">
-<img src='(https://user-images.githubusercontent.com/51030860/186059239-782fd9ef-3872-4f00-94b2-78e0cacd9514.png'>
+<img src='https://user-images.githubusercontent.com/51030860/186059488-55091148-429e-4b68-ab53-a34d3aed9a02.png'>
 </p>
 
 <p align="center">
