@@ -531,8 +531,10 @@ with torch.no_grad():
 # More code in the actual python file (text_loader_bert.py)
 return description, label
 ```
-
-
+- Below shows the tuple output from the text dataloader of a certain index relating to the Music, Films, Books & Games industry which will be used in the bert_prediction.py script. 
+<p align="center">
+<img src='https://user-images.githubusercontent.com/51030860/186054413-bd99a31b-ded4-4ca2-83a4-c172636ef643.png'>
+</p>
 
 
 ## Milestone 6: Combine the models
