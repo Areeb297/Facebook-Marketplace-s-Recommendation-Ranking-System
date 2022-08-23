@@ -573,6 +573,10 @@ self.main = torch.nn.Sequential(torch.nn.Conv1d(input_size, 256, kernel_size=3, 
 
 - The tensorboard graphs:
 
+<p align="center">
+<img src='https://user-images.githubusercontent.com/51030860/186059932-1286aaba-60e0-4a43-9918-2a75a781d817.png'>
+</p>
+
 ## Milestone 6: Combine the models
 
 ## Milestone 7: Configure and deploy the model serving API
