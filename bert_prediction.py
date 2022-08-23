@@ -95,10 +95,10 @@ def test_accuracy(test_loader, device, model):
     # since we're not training, we don't need to calculate the gradients for our outputs
     with torch.no_grad():
         for data in tqdm(test_loader):
-            images, labels = data
-            images, labels = images.to(device), labels.to(device)
+            text, labels = data
+            text, labels = text.to(device), labels.to(device)
             # calculate outputs by running images through the network
-            outputs = model(images)
+            outputs = model(text)
             # the class with the highest energy is what we choose as prediction
             _, predicted = torch.max(outputs.data, 1)
             # print(torch.max(outputs.data, 1))
