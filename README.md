@@ -538,7 +538,7 @@ return description, label
 
 - The next script we create is the bert_prediction.py script which will perform the data split into training and evaluation sets along with the training and testing the model. Most of the code remains the same as the script from transfer_learning_CNN.py where the things we do change are the CNN model we use, the dataset class to load the data, the change in training, validation, and testing data and lastly, how we save the model where we save the weights of the best performing model as 'text_model.pt'. We use a max_length of only 20 where we can go up to 512 but we are not aiming for the highest possible accuracy at the moment and achieving at least 60% accuracy on the validation set similar to image classification model would be sufficient. Below is the code snippet of the neural network model we use which includes convolutional 1d layers (2d for images), max pooling, relu activations, linear layers etc:
 
-```
+```python
 self.main = torch.nn.Sequential(torch.nn.Conv1d(input_size, 256, kernel_size=3, stride=1, padding=1),
                           torch.nn.ReLU(),
                           torch.nn.MaxPool1d(kernel_size=2, stride=2),
@@ -576,6 +576,17 @@ self.main = torch.nn.Sequential(torch.nn.Conv1d(input_size, 256, kernel_size=3, 
 <p align="center">
 <img src='https://user-images.githubusercontent.com/51030860/186059932-1286aaba-60e0-4a43-9918-2a75a781d817.png'>
 </p>
+
+- Lastly, in order to feed new product descriptions and see what predictions our model outputs, we create a text_processor.py script where the class takes in a description, converts it to a pandas series, applies the clean_text_data function we used before to clean the product description column (clean_tabular_data.py) where this includes keep only alphanumeric characters, lowercasing all characters etc. Next we use the transformers library to get BertTokenizer and BertModel to tokenize the description and as we trained with a max length of 20, we keep only 20 sequences, then we use BertModel to create word embeddings in torch tensor format and we reshape it to have a batch size of 1 as the dimension result in the final shape (1, 768, 20) which will be appropriate for our model to predict on. We set the model on evaluation mode to remove all the dropout layers and speed up the model prediction time. A code snippet from the text_processor.py file is shown below which demonstrates how the description is transformed:
+
+```python
+description = clean_text_data(pd.Series(description))[0]
+encoded = self.tokenizer.batch_encode_plus([description], max_length=self.max_length, padding='max_length', truncation=True) # every description in list format
+encoded = {key: torch.LongTensor(value) for key, value in encoded.items()}
+with torch.no_grad():
+    description = self.model(**encoded).last_hidden_state.swapaxes(1,2)
+description = description.reshape(1, -1, self.max_length)
+```
 
 ## Milestone 6: Combine the models
 
