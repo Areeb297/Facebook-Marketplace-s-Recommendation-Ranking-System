@@ -587,6 +587,30 @@ with torch.no_grad():
     description = self.model(**encoded).last_hidden_state.swapaxes(1,2)
 description = description.reshape(1, -1, self.max_length)
 ```
+- To see how our model performs on random product description, we create a sample sentence, feed into the model, obtain the output and decode the prediction. We expect the prediction to be in the Sports, Leisure & Travel category as it contains keywords: bicycle & wheels. This is exactly what we get where it is nice to see our model in action and predicting as we want it to:
+
+```python
+sample_text = 'This is a new sentence relating to product category bicycle with 2 wheels only'
+process = TextProcessor()
+description = process(sample_text)
+model = Classifier(ngpu=2, num_classes=13)
+checkpoint = torch.load('text_model.pt')
+model.load_state_dict(checkpoint['model_state_dict'])
+
+device = torch.device('cpu')
+model.to(device)
+model.eval()
+
+decoder = pd.read_pickle('image_decoder.pkl')
+output = model(description)
+_, predicted = torch.max(output.data, 1)
+pred = decoder[int(predicted)]
+print(pred)
+```
+<p align="center">
+<img src='https://user-images.githubusercontent.com/51030860/186062551-70a49ae9-c958-44c6-84bf-abe03dba10d7.png'>
+</p>
+
 
 ## Milestone 6: Combine the models
 
