@@ -536,6 +536,49 @@ return description, label
 <img src='https://user-images.githubusercontent.com/51030860/186054413-bd99a31b-ded4-4ca2-83a4-c172636ef643.png'>
 </p>
 
+- The next script we create is the bert_prediction.py script which will perform the data split into training and evaluation sets along with the training and testing the model. Most of the code remains the same as the script from transfer_learning_CNN.py where the things we do change are the CNN model we use, the dataset class to load the data, the change in training, validation, and testing data and lastly, how we save the model where we save the weights of the best performing model as 'text_model.pt'. We use a max_length of only 20 where we can go up to 512 but we are not aiming for the highest possible accuracy at the moment and achieving at least 60% accuracy on the validation set similar to image classification model would be sufficient. Below is the code snippet of the neural network model we use which includes convolutional 1d layers (2d for images), max pooling, relu activations, linear layers etc:
+
+```
+self.main = torch.nn.Sequential(torch.nn.Conv1d(input_size, 256, kernel_size=3, stride=1, padding=1),
+                          torch.nn.ReLU(),
+                          torch.nn.MaxPool1d(kernel_size=2, stride=2),
+                          torch.nn.Conv1d(256, 128, kernel_size=3, stride=1, padding=1),
+                          torch.nn.ReLU(),
+                          torch.nn.MaxPool1d(kernel_size=2, stride=2),
+                          torch.nn.Dropout(p=0.2),
+                          torch.nn.Conv1d(128, 64, kernel_size=3, stride=1, padding=1),
+                          torch.nn.Dropout(p=0.2),
+                          torch.nn.ReLU(),
+                          torch.nn.MaxPool1d(kernel_size=2, stride=2),
+                          torch.nn.Dropout(p=0.2),
+                          torch.nn.ReLU(),
+                          torch.nn.Flatten(),
+                          torch.nn.Linear(128 , 64),
+                          torch.nn.ReLU(),
+                          torch.nn.Linear(64, num_classes))
+```
+- The results we achieve first with 5 epochs are validation accuracy reaching around 58% and training and validation loss continuously decreasing so it is worth training for further epochs. Remember when we used text data to predict product price using sklearn regression and how poor the result was (80,000 RMSE) and the massive difference using a suitable deep learning framework can bring. When we train for 30 epochs, we use a higher learning rate (1e-4) for adam optimizer compared with 3e-4 and also add the weight decay hyperparameter of 3e-5 to prevent overfitting. Below in the tensorboard graphs, we see the red graphs represent the 5 epochs training and the white graphs represent the 30 epochs of training. The final result is we obtain average training accuracy of 87% (98% when training the model), validation accuracy of around 69% and testing accuracy of 63%. This is a bit better than our image classification model. Shown below are the graphs and results:
+
+<p align="center">
+<img src='https://user-images.githubusercontent.com/51030860/186058342-cbb2f80a-e8ef-41cb-98e7-249030df6994.png'>
+</p>
+
+<p align="center">
+<img src='https://user-images.githubusercontent.com/51030860/186058402-a6ebb85f-e3dd-4b80-97f5-0c0fcc0c75c0.png'>
+</p>
+
+<p align="center">
+<img src='https://user-images.githubusercontent.com/51030860/186058527-e394f846-b398-47db-baa7-ff6d9b890e20.png'>
+</p>
+
+<p align="center">
+<img src='https://user-images.githubusercontent.com/51030860/186058567-d39a5541-b507-4dc6-9dd5-f11d0f855921.png'>
+</p>
+
+- The tensorboard graphs:
+
+
+
 
 ## Milestone 6: Combine the models
 
