@@ -571,7 +571,7 @@ self.main = torch.nn.Sequential(torch.nn.Conv1d(input_size, 256, kernel_size=3, 
 <img src='https://user-images.githubusercontent.com/51030860/186058931-27080421-5fa8-4489-9127-9afec4fb1077.png'>
 </p>
 
-- The tensorboard graphs:
+- The tensorboard graphs where we can see overfitting has not occured yet but for a few more epochs it might have:
 
 <p align="center">
 <img src='https://user-images.githubusercontent.com/51030860/186059932-1286aaba-60e0-4a43-9918-2a75a781d817.png'>
