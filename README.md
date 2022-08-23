@@ -560,11 +560,11 @@ self.main = torch.nn.Sequential(torch.nn.Conv1d(input_size, 256, kernel_size=3, 
 - The results we achieve first with 5 epochs are validation accuracy reaching around 58% and training and validation loss continuously decreasing so it is worth training for further epochs. Remember when we used text data to predict product price using sklearn regression and how poor the result was (80,000 RMSE) and the massive difference using a suitable deep learning framework can bring. When we train for 30 epochs, we use a higher learning rate (1e-4) for adam optimizer compared with 3e-4 and also add the weight decay hyperparameter of 3e-5 to prevent overfitting. Below in the tensorboard graphs, we see the red graphs represent the 5 epochs training and the white graphs represent the 30 epochs of training. The final result is we obtain average training accuracy of 87% (98% when training the model), validation accuracy of around 69% and testing accuracy of 63%. This is a bit better than our image classification model. Shown below are the graphs and results:
 
 <p align="center">
-<img src='https://user-images.githubusercontent.com/51030860/186058342-cbb2f80a-e8ef-41cb-98e7-249030df6994.png'>
+<img src='https://user-images.githubusercontent.com/51030860/186059151-10270cae-932a-4969-b1df-2e22295931ad.png'>
 </p>
 
 <p align="center">
-<img src='https://user-images.githubusercontent.com/51030860/186058402-a6ebb85f-e3dd-4b80-97f5-0c0fcc0c75c0.png'>
+<img src='(https://user-images.githubusercontent.com/51030860/186059239-782fd9ef-3872-4f00-94b2-78e0cacd9514.png'>
 </p>
 
 <p align="center">
