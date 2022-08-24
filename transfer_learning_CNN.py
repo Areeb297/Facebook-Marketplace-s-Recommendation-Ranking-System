@@ -112,9 +112,9 @@ def test_accuracy(test_loader, device, model):
 
 
 class Classifier(torch.nn.Module):
-    """This CNN class uses the torch Sequential module to build layers of the neural network which includes 
-    convolutional layers, dropout layers, max pooling layers, a linear layer with ReLU as activation functions, and
-    softmax being used at the end to output probabilities of each class in the dataset.
+    """This CNN class starts of with the resnet50 pretrained model where only the fully connected and layer 4 are unfreezed 
+    for training. The last layer will be a linear layer using the output from the resnet50 as input and outputs the number of 
+    product categories. The torch Sequential module is used to connect the resnet50 and linear layer.
     
     Args:
         ngpu (int): The number of CPU cores to use for training
@@ -316,7 +316,7 @@ def train(model, device, train_loader, valid_loader, epochs=10):
 
         if early_stopping.early_stop:
             print("Early stopping invoked! We are at epoch:", epoch)
-            torch.save(model, 'CNN_model.pth')
+            torch.save(model, 'CNN_model.pt')
             return model
 
     # torch.save(model.state_dict(), 'model_cnn')
@@ -367,7 +367,7 @@ if __name__ == '__main__':
     if os.path.exists('final_models/image_model.pt'):
         model = Classifier(ngpu=ngpu, num_classes=num_classes)
         checkpoint = torch.load('final_models/image_model.pt')
-        model.load_state_dict(checkpoint['model_state_dict'])
+        # model.load_state_dict(checkpoint['model_state_dict'])
         model.eval()
         acc = test_accuracy(test_loader, device, model)
         print('Accuracy of the network on the test images: {} %'.format(acc))
