@@ -614,6 +614,35 @@ print(pred)
 
 ## Milestone 6: Combine the models
 
+- The next step is to combine the text and image model which will result in an increase of accuracy by 20%. The first stage is to define the Pytorch Dataset class which creates an instance of both the image and text datasets with the output for a given index being in the form: ((image, embedded text sequence), category classification). 
+
+- The class also ensures that each description and image is associated with the correct product category in the tabular dataset. We do not need to create an encoder or decoder since we already have the decoder saved as image_decoder.pkl for the merged dataframe and the encodings do not change as we use df.category.cat.codes which give the same result every time. After we created the dataset class, we can then use it on a dataloader to train and evaluate our combined model. Shown below are code snippets from the imagetext_loader.py file which outlines how the class reads in a given image and product description with an assigned product category from the merged dataframe saved as the product_images.csv file, transforms the image and creates word embeddings using Bert, and outputs the required tuple:
+
+```python
+self.merged_data = pd.read_csv(root_dir) # read in the product_images.csv file
+self.description = self.merged_data['product_description'].to_list()
+self.files = self.merged_data['image_id'] # get corresponding image id
+self.decoder = pd.read_pickle('image_decoder.pkl') # read in the decoder file which we saved from image classification
+
+image = Image.open('cleaned_images/' + self.files[index] + '.jpg') # open the image with file name corresponding to the given index 
+image = self.transform(image).float() # transform the image
+
+description = self.description[index]
+encoded = self.tokenizer.batch_encode_plus([description], max_length=self.max_length, padding='max_length', truncation=True)
+encoded = {key: torch.LongTensor(value) for key, value in encoded.items()}
+
+with torch.no_grad():
+    description = self.model(**encoded).last_hidden_state.swapaxes(1,2) # create word embeddings of shape (768, max_length) as torch tensor
+
+description = description.squeeze(0) # remove unnecessary dimension that the CNN model will not use
+return image, description, label # return the requires variables as tuple
+
+# These are just bits of code from the file so to make sense of how the code fully works, please see imagetext_loader.py
+```
+
+
+
+
 ## Milestone 7: Configure and deploy the model serving API
 
 ## Conclusions
