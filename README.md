@@ -1,5 +1,4 @@
 # FB Marketplace Recommendation Ranking System
-![image](https://user-images.githubusercontent.com/51030860/186465516-07710b2c-2b1d-4fc1-b27a-a7bcb63b9d08.png)
 
 ## Milestone 1: An overview of the system
 
@@ -617,7 +616,7 @@ print(pred)
 
 - The next step is to combine the text and image model which will result in an increase of accuracy by 20%. The first stage is to define the Pytorch Dataset class which creates an instance of both the image and text datasets with the output for a given index being in the form: ((image, embedded text sequence), category classification). 
 
-- The class also ensures that each description and image is associated with the correct product category in the tabular dataset. When indexed, the Dataset returns a tuple of (image, embedded text sequence) as the features, and the category classification as the target. We do not need to create an encoder or decoder since we already have the decoder saved as image_decoder.pkl for the merged dataframe and the encodings do not change as we use df.category.cat.codes which give the same result every time. After we created the dataset class, we can then use it on a dataloader to train and evaluate our combined model. Shown below are code snippets from the imagetext_loader.py file which outlines how the class reads in a given image and product description with an assigned product category from the merged dataframe saved as the product_images.csv file, transforms the image and creates word embeddings using Bert, and outputs the required tuple:
+- The class also ensures that each description and image is associated with the correct product category in the tabular dataset. When indexed, the Dataset returns a tuple of (image, embedded text sequence) as the features, and the category classification as the target. We do not need to create an encoder or decoder since we already have the decoder saved as image_decoder.pkl for the merged dataframe and the encodings do not change as we use df.category.cat.codes which give the same result every time. After we created the dataset class, we can then use it on a dataloader to train and evaluate our combined model. Shown below are code snippets from the imagetext_loader.py file which outlines how the class reads in a given image and product description with an assigned product category from the merged dataframe saved as the product_images.csv file, transforms the image, tokenizes the product descriptions and creates word embeddings using Bert, and outputs the required tuple:
 
 ```python
 self.merged_data = pd.read_csv(root_dir) # read in the product_images.csv file
@@ -644,7 +643,7 @@ return image, description, label # return the requires variables as tuple
 - The next stage is combining the text and image classifiers into a combined neural network model. The code can be found in combined_model.py file. Most of the code remains the same compared with bert_prediction.py and transfer_learning_CNN.py files when training the model. The major change that we needed to make is in defining the models. We first create the TextClassifier class which contains 1d convolutional layers, dropout, max pooling, linear layers and ReLU activations. The difference between this class and the class defined in bert_prediction.py is that the last linear layer gives 128 outputs instead of 13 after flattening the layers. Furthermore, we create the CombinedModel class which contains the pretrained resnet50 image model where we also add a linear layer at the end of this model which outputs 128 values. This is done so that we can concatenate the two results giving a 256 flattened tensor where now we add a linear layer afterward to give 13 outputs/targets. This combined model is then trained using cross entropy loss and the adam optimizer. Shown below is a diagram to help demonstrate how the models are combined with linear layers:
 
 <p align="center">
-<img src='https://user-images.githubusercontent.com/51030860/186463251-0dff3fe4-9e1e-417f-aaf4-a727b5310323.png'>
+<img src='https://user-images.githubusercontent.com/51030860/186465516-07710b2c-2b1d-4fc1-b27a-a7bcb63b9d08.png'>
 </p>
 
 - Additionally, instead of unfreezing layer 4 parameters, we only unfreeze the last fully connected layer in resnet50 as otherwise, the model tends to overfit quickly. Shown below is the code snippet of how the models are combined so we have 256 features at the end that are transformed into 13:
@@ -666,6 +665,24 @@ combined_features = torch.cat((image_features, text_features), dim=1)
 combined_features = self.main(combined_features)
 
 ```
+- Another tweak we have to make is unpack dataloader using three variables instead of two such as: 
+```python
+for _, (images, text,  labels) in progress_bar:
+    images, text, labels = images.to(device), text.to(device), labels.to(device)
+```
+- We add an option of further training once training is complete by saving the epoch number and the validation accuracy where this is shown below in code:
+```python
+model = CombinedModel(ngpu=ngpu, num_classes=num_classes)
+checkpoint = torch.load('final_models/combined_model.pt')
+model.load_state_dict(checkpoint['model_state_dict'])
+model.to(device)
+
+if further_training.lower() == 'yes': # If we want to train further in the future
+    model_cnn = train(model, device, train_loader, valid_loader, epochs=55, curr_epoch_num=checkpoint['epoch']+1, prev_val_acc=checkpoint['val_acc'])
+
+```
+
+- Lastly, moving onto results, we save a significant improvement in accuracy compared with the text model or image model with the combined model reaching around 83%. Shown below are screenshots relating to the result from the test data as well as the validation and training metrics with tensorboard graphs displaying how the validation and training accuracy and loss vary during training of the model:
 
 ## Milestone 7: Configure and deploy the model serving API
 
