@@ -640,7 +640,9 @@ return image, description, label # return the requires variables as tuple
 # These are just bits of code from the file so to make sense of how the code fully works, please see imagetext_loader.py
 ```
 
-- The next stage is combining the text and image classifiers into a combined neural network model. The code can be found in combined_model.py file. Most of the code remains the same compared with bert_prediction.py and transfer_learning_CNN.py files when training the model. The major change that we needed to make is in defining the models. We first create the TextClassifier class which contains 1d convolutional layers, dropout, max pooling, linear layers and ReLU activations. The difference between this class and the class defined in bert_prediction.py is that the last linear layer gives 128 outputs instead of 13 after flattening the layers. Furthermore, we create the CombinedModel class which contains the pretrained resnet50 image model where we also add a linear layer at the end of this model which outputs 128 values. This is done so that we can concatenate the two results giving a 256 flattened tensor where now we add a linear layer afterward to give 13 outputs/targets. This combined model is then trained using cross entropy loss and the adam optimizer. Shown below is a diagram to help demonstrate how the models are combined with linear layers:
+- The next stage is combining the text and image classifiers into a combined neural network model. The code can be found in combined_model.py file. Most of the code remains the same compared with bert_prediction.py and transfer_learning_CNN.py files when training the model. The major change that we needed to make is in defining the models. We first create the TextClassifier class which contains 1d convolutional layers, dropout, max pooling, linear layers and ReLU activations. The difference between this class and the class defined in bert_prediction.py is that the last linear layer gives 128 outputs instead of 13 after flattening the layers. 
+
+- Furthermore, we create the CombinedModel class which contains the pretrained resnet50 image model where we also add a linear layer at the end of this model which outputs 128 values. This is done so that we can concatenate the two results giving a 256 flattened tensor where now we add a linear layer afterward to give 13 outputs/targets. This combined model is then trained using cross entropy loss and the adam optimizer. Shown below is a diagram to help demonstrate how the models are combined with linear layers:
 
 <p align="center">
 <img src='https://user-images.githubusercontent.com/51030860/186465516-07710b2c-2b1d-4fc1-b27a-a7bcb63b9d08.png'>
@@ -682,7 +684,7 @@ if further_training.lower() == 'yes': # If we want to train further in the futur
 
 ```
 
-- Lastly, moving onto results, we save a significant improvement in accuracy compared with the text model or image model with the combined model reaching around 83%. Shown below are screenshots relating to the result from the test data as well as the validation and training metrics with tensorboard graphs displaying how the validation and training accuracy and loss vary during training of the model:
+- Lastly, moving onto results, we train for 50 epochs and we see a significant improvement in accuracy compared with the text model or image model with the combined model reaching around 83% within only 30 epochs! Shown below are screenshots relating to the result from the test data as well as the validation and training metrics with tensorboard graphs displaying how the validation and training accuracy and loss vary during training of the model:
 
 ## Milestone 7: Configure and deploy the model serving API
 
