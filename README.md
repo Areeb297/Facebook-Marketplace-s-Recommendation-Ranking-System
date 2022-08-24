@@ -1,5 +1,4 @@
 # FB Marketplace Recommendation Ranking System
-![image](https://user-images.githubusercontent.com/51030860/186464600-813e61ca-a7c5-47a9-a5dc-73a5e0715b25.png)
 
 ## Milestone 1: An overview of the system
 
