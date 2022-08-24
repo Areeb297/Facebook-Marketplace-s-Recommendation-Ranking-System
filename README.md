@@ -616,7 +616,7 @@ print(pred)
 
 - The next step is to combine the text and image model which will result in an increase of accuracy by 20%. The first stage is to define the Pytorch Dataset class which creates an instance of both the image and text datasets with the output for a given index being in the form: ((image, embedded text sequence), category classification). 
 
-- The class also ensures that each description and image is associated with the correct product category in the tabular dataset. We do not need to create an encoder or decoder since we already have the decoder saved as image_decoder.pkl for the merged dataframe and the encodings do not change as we use df.category.cat.codes which give the same result every time. After we created the dataset class, we can then use it on a dataloader to train and evaluate our combined model. Shown below are code snippets from the imagetext_loader.py file which outlines how the class reads in a given image and product description with an assigned product category from the merged dataframe saved as the product_images.csv file, transforms the image and creates word embeddings using Bert, and outputs the required tuple:
+- The class also ensures that each description and image is associated with the correct product category in the tabular dataset. When indexed, the Dataset returns a tuple of (image, embedded text sequence) as the features, and the category classification as the target. We do not need to create an encoder or decoder since we already have the decoder saved as image_decoder.pkl for the merged dataframe and the encodings do not change as we use df.category.cat.codes which give the same result every time. After we created the dataset class, we can then use it on a dataloader to train and evaluate our combined model. Shown below are code snippets from the imagetext_loader.py file which outlines how the class reads in a given image and product description with an assigned product category from the merged dataframe saved as the product_images.csv file, transforms the image and creates word embeddings using Bert, and outputs the required tuple:
 
 ```python
 self.merged_data = pd.read_csv(root_dir) # read in the product_images.csv file
@@ -640,8 +640,31 @@ return image, description, label # return the requires variables as tuple
 # These are just bits of code from the file so to make sense of how the code fully works, please see imagetext_loader.py
 ```
 
+- The next stage is combining the text and image classifiers into a combined neural network model. The code can be found in combined_model.py file. Most of the code remains the same compared with bert_prediction.py and transfer_learning_CNN.py files when training the model. The major change that we needed to make is in defining the models. We first create the TextClassifier class which contains 1d convolutional layers, dropout, max pooling, linear layers and ReLU activations. The difference between this class and the class defined in bert_prediction.py is that the last linear layer gives 128 outputs instead of 13 after flattening the layers. Furthermore, we create the CombinedModel class which contains the pretrained resnet50 image model where we also add a linear layer at the end of this model which outputs 128 values. This is done so that we can concatenate the two results giving a 256 flattened tensor where now we add a linear layer afterward to give 13 outputs/targets. This combined model is then trained using cross entropy loss and the adam optimizer. Shown below is a diagram to help demonstrate how the models are combined with linear layers:
 
+<p align="center">
+<img src='https://user-images.githubusercontent.com/51030860/186463251-0dff3fe4-9e1e-417f-aaf4-a727b5310323.png'>
+</p>
 
+- Additionally, instead of unfreezing layer 4 parameters, we only unfreeze the last fully connected layer in resnet50 as otherwise, the model tends to overfit quickly. Shown below is the code snippet of how the models are combined so we have 256 features at the end that are transformed into 13:
+
+```python
+
+# Define layers 
+resnet50 = models.resnet50(weights=ResNet50_Weights.DEFAULT)
+out_features = resnet50.fc.out_features
+self.image_classifier = torch.nn.Sequential(resnet50, torch.nn.Linear(out_features, 128))
+self.text_classifier = TextClassifier(ngpu=ngpu, input_size=input_size)
+final_layer = torch.nn.Linear(256, num_classes)
+self.main = torch.nn.Sequential(final_layer)
+
+# Pass them into forward method of the combined model class
+image_features = self.image_classifier(image_features)
+text_features = self.text_classifier(text_features)
+combined_features = torch.cat((image_features, text_features), dim=1)
+combined_features = self.main(combined_features)
+
+```
 
 ## Milestone 7: Configure and deploy the model serving API
 
