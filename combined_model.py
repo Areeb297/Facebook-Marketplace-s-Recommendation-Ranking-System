@@ -341,11 +341,11 @@ if __name__ == '__main__':
 
         model.eval()
         acc = test_accuracy(test_loader, device, model)
-        print('Accuracy of the network on the test data (product descriptions): {} %'.format(acc))
+        print('Accuracy of the network on the test data (combined image and text data): {} %'.format(acc))
 
     else:
         model = CombinedModel(ngpu=ngpu, num_classes=num_classes)
         model.to(device)
         model_cnn = train(model, device, train_loader, valid_loader, epochs=50)
         acc = test_accuracy(test_loader, device, model_cnn)
-        print('Accuracy of the network on the test data (product descriptions): {} %'.format(acc))
+        print('Accuracy of the network on the test data (combined image and text data): {} %'.format(acc))
