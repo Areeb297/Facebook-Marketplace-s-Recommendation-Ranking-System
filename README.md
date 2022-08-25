@@ -35,7 +35,13 @@ data.drop_duplicates(subset=['product_name', 'location', 'product_description', 
 data.drop(columns=['url', 'page_id'], inplace=True)
 ```
 
-- Concerning the images folder and Images.csv file, we create a cleaning pipeline for both. For the images.csv folder, we will discuss more in the next milestone.
+- Concerning the images folder and Images.csv file, firstly Filezilla is used to obtain the images directory from AWS and copy it to our local machine. 
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/51030860/186547166-768ca7dc-69dc-421d-a9a4-24e77a3c3692.png">
+</p>
+
+- We create a cleaning pipeline for both. For the images.csv folder, we will discuss more in the next milestone.
 
 - Regarding the images folder, we develop functions to resize all the images into one consistent format with same number of channels (3) (RGB) and size (height, width). As using high pixel size will result in memory problems and poor performance when running sklearn ML models, we take two approaches when cleaning the images folder. For machine learning, we use a black background image of size (30x30) and paste the images on that after scaling to the appropriate dimensions. We save these (3, 30, 30) images in the 'cleaned_images_ML' folder with the name of each jpg file being the image id. 
 
