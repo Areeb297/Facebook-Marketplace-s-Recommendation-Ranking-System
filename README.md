@@ -682,9 +682,27 @@ model.to(device)
 if further_training.lower() == 'yes': # If we want to train further in the future
     model_cnn = train(model, device, train_loader, valid_loader, epochs=55, curr_epoch_num=checkpoint['epoch']+1, prev_val_acc=checkpoint['val_acc'])
 
+# This is only part of the code so look into the combined_model.py file for better understanding
 ```
 
-- Lastly, moving onto results, we train for 50 epochs and we see a significant improvement in accuracy compared with the text model or image model with the combined model reaching around 83% validation accuracy within only 30 epochs! Shown below are screenshots relating to the result from the test data as well as the validation and training metrics with tensorboard graphs displaying how the validation and training accuracy and loss vary during training of the model:
+- Lastly, moving onto results, we train for 50 epochs and we see a significant improvement in accuracy compared with the text model or image model with the combined model reaching around 86% validation accuracy and testing accuracy was similar! Shown below are screenshots relating to the result from the test data as well as the validation and training metrics with tensorboard graphs displaying how the validation and training accuracy and loss vary during training of the model:
+
+<p align="center">
+<img src='https://user-images.githubusercontent.com/51030860/186545430-87e5ebe6-1255-41e3-b91c-f8acf717525f.png'>
+</p>
+
+<p align="center">
+<img src='https://user-images.githubusercontent.com/51030860/186545452-b6ce51ba-683f-4c47-8156-f14433d9785e.png'>
+</p>
+
+<p align="center">
+<img src='https://user-images.githubusercontent.com/51030860/186545479-3c9f35b3-6fbe-44d9-9cd4-34434ab4bb2b.png'>
+</p>
+
+<p align="center">
+<img src='https://user-images.githubusercontent.com/51030860/186545514-6bc8e0d1-d549-4ab2-a0ba-4fb98d06f6ff.png'>
+</p>
+
 
 ## Milestone 7: Configure and deploy the model serving API
 
