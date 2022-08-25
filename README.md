@@ -674,8 +674,16 @@ combined_features = self.main(combined_features)
 for _, (images, text,  labels) in progress_bar:
     images, text, labels = images.to(device), text.to(device), labels.to(device)
 ```
-- We add an option of further training once training is complete by saving the epoch number and the validation accuracy where this is shown below in code:
+- We add an option of further training once training is complete by saving the epoch number and the validation accuracy and we save these metrics during training where this is shown below in code:
 ```python
+
+# Only save the best performing model (best accuracy on validation set)
+if val_acc > prev_val_acc:
+    prev_val_acc = val_acc
+    model.to(device)
+    torch.save({'epoch': epoch, 'val_acc': val_acc, 'model_state_dict': copy.deepcopy(model.state_dict())}, f'{final_models_path}/combined_model.pt')
+
+# Further training
 model = CombinedModel(ngpu=ngpu, num_classes=num_classes)
 checkpoint = torch.load('final_models/combined_model.pt')
 model.load_state_dict(checkpoint['model_state_dict'])
