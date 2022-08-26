@@ -6,6 +6,8 @@ runs/
 cleaned_images_ML/
 final_models/
 
+#  pytorch files
+*.pt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
