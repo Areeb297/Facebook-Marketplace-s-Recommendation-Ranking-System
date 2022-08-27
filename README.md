@@ -143,7 +143,7 @@ print(f'RMSE: {rmse}')
 ```
 <ins>2 - Logistic Regression for predicting product category (Classification):</ins>
 
-- Coming back to merging the data first, we use pandas merge to combine both the Image.csv and Product.csv files after having cleaned them. For the images.csv file, we drop unecessary columns like create_time, bucket_link, image_ref and we merge both datasets on the common image id column. Once we have a merged dataframe, we firstly split the category data such that we only retain the one relevant category for every product observation to then convert the category into codes using cat.codes and then save the mapping as a dictionary into a pickle file ('image_decoder.pkl') to be able to decode them later once our model has returned the predictions. We save the cleaned product_images as product_images.csv file. 
+- Coming back to merging the data first, we use pandas merge to combine both the Image.csv and Product.csv files after having cleaned them. For the images.csv file, we drop unecessary columns like create_time, bucket_link, image_ref and we merge both datasets on the common image id column. Once we have a merged dataframe, we firstly split the category data such that we only retain the one relevant category for every product observation to then convert the category into codes using cat.codes and then save the mapping as a dictionary into a pickle file ('decoder.pkl') to be able to decode them later once our model has returned the predictions. We save the cleaned product_images as product_images.csv file. 
 
 - The final shape for this data is 11,115 rows with 8 columns which is not a lot of data when using machine learning or deep neural nets. With transfer learning however, we can achieve a high accuracy when implementing deep learning but we will examine that later. For our deep learning network, we will define an image loader class which will read in the product_images.csv file, using the image id from the dataset, look through the cleaned_images (154x154) folder for the required image id, convert to pytorch tensor, obtain the features, and so on. However, for machine learning, we will require another method to combine the images and the csv file as we do not have an image loader class.
 
@@ -229,7 +229,7 @@ print(classification_report(y_test, y_pred))
 self.merged_data = pd.read_pickle('product_images.csv') # Get the products_images data we saved before from the merge.py file
 self.files = self.merged_data['image_id'] # get image id from the data
 self.labels = self.merged_data['category_codes'] # Finally get the labels/category codes
-self.decoder = pd.read_pickle('image_decoder.pkl') # read in the decoder dictionary save as a pickle file
+self.decoder = pd.read_pickle('decoder.pkl') # read in the decoder dictionary save as a pickle file
 
 self.transform = transforms.Compose([ # the transformation pipeline an image goes through
     transforms.Resize(128),
@@ -511,7 +511,7 @@ image = image.reshape(1, 3, 128, 128)
 
 ## Milestone 5: Create the text understanding model
 
-- Similar to image classification, we need a dataloader class to transform text from the product description column into tensors to be able to input and train that in a CNN model. Therefore, our first python script contains the Textloader class which firstly reads in the product_images.csv file containing the cleaned and merged products and images data we saved from before. Subsequently, we remove duplicate rows that have the same product description and category as now, we do not need the image id column and since every product has at least one image or more, there are several rows with duplicate rows with just the image id being unique. We then load in the pretrained Bert tokenizer and model to convert every product description into tokens and then the Bert model creates the needed word embeddings after which we transform them into torch.tensor type with vector size 768 for every token and maximum length or number of tokens set to 50 per sequence or description. The class then finally returns indexed production description and its corresponding category code (loaded from saved pickle file from before 'image_decoder.pkl') in tuple form. Shown below are code snippets from the text_loader_bert.py file and the sample output it generates given an index:
+- Similar to image classification, we need a dataloader class to transform text from the product description column into tensors to be able to input and train that in a CNN model. Therefore, our first python script contains the Textloader class which firstly reads in the product_images.csv file containing the cleaned and merged products and images data we saved from before. Subsequently, we remove duplicate rows that have the same product description and category as now, we do not need the image id column and since every product has at least one image or more, there are several rows with duplicate rows with just the image id being unique. We then load in the pretrained Bert tokenizer and model to convert every product description into tokens and then the Bert model creates the needed word embeddings after which we transform them into torch.tensor type with vector size 768 for every token and maximum length or number of tokens set to 50 per sequence or description. The class then finally returns indexed production description and its corresponding category code (loaded from saved pickle file from before 'decoder.pkl') in tuple form. Shown below are code snippets from the text_loader_bert.py file and the sample output it generates given an index:
 
 ```python
 root_dir = 'product_images.csv'
@@ -520,7 +520,7 @@ self.merged_data.drop_duplicates(subset=['product_description', 'category_codes'
 self.description = self.merged_data['product_description'].to_list()
 self.labels = self.merged_data['category_codes'].to_list()
 
-self.decoder = pd.read_pickle('image_decoder.pkl') # read in the decoder file which we saved from image classification
+self.decoder = pd.read_pickle('decoder.pkl') # read in the decoder file which we saved from image classification
 
 self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased') # Get the pretrained Bert Tokenizer class
 self.model = BertModel.from_pretrained('bert-base-uncased', output_hidden_states=True) # Bert Model
@@ -609,7 +609,7 @@ device = torch.device('cpu')
 model.to(device)
 model.eval()
 
-decoder = pd.read_pickle('image_decoder.pkl')
+decoder = pd.read_pickle('decoder.pkl')
 output = model(description)
 _, predicted = torch.max(output.data, 1)
 pred = decoder[int(predicted)]
@@ -624,13 +624,13 @@ print(pred)
 
 - The next step is to combine the text and image model which will result in an increase of accuracy by 20%. The first stage is to define the Pytorch Dataset class which creates an instance of both the image and text datasets with the output for a given index being in the form: ((image, embedded text sequence), category classification). 
 
-- The class also ensures that each description and image is associated with the correct product category in the tabular dataset. When indexed, the Dataset returns a tuple of (image, embedded text sequence) as the features, and the category classification as the target. We do not need to create an encoder or decoder since we already have the decoder saved as image_decoder.pkl for the merged dataframe and the encodings do not change as we use df.category.cat.codes which give the same result every time. After we created the dataset class, we can then use it on a dataloader to train and evaluate our combined model. Shown below are code snippets from the imagetext_loader.py file which outlines how the class reads in a given image and product description with an assigned product category from the merged dataframe saved as the product_images.csv file, transforms the image, tokenizes the product descriptions and creates word embeddings using Bert, and outputs the required tuple:
+- The class also ensures that each description and image is associated with the correct product category in the tabular dataset. When indexed, the Dataset returns a tuple of (image, embedded text sequence) as the features, and the category classification as the target. We do not need to create an encoder or decoder since we already have the decoder saved as decoder.pkl for the merged dataframe and the encodings do not change as we use df.category.cat.codes which give the same result every time. After we created the dataset class, we can then use it on a dataloader to train and evaluate our combined model. Shown below are code snippets from the imagetext_loader.py file which outlines how the class reads in a given image and product description with an assigned product category from the merged dataframe saved as the product_images.csv file, transforms the image, tokenizes the product descriptions and creates word embeddings using Bert, and outputs the required tuple:
 
 ```python
 self.merged_data = pd.read_csv(root_dir) # read in the product_images.csv file
 self.description = self.merged_data['product_description'].to_list()
 self.files = self.merged_data['image_id'] # get corresponding image id
-self.decoder = pd.read_pickle('image_decoder.pkl') # read in the decoder file which we saved from image classification
+self.decoder = pd.read_pickle('decoder.pkl') # read in the decoder file which we saved from image classification
 
 image = Image.open('cleaned_images/' + self.files[index] + '.jpg') # open the image with file name corresponding to the given index 
 image = self.transform(image).float() # transform the image
