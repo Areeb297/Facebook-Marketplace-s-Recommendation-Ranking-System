@@ -26,7 +26,7 @@ class ImageDataset(torch.utils.data.Dataset):
         self.labels = self.merged_data['category_codes']
 
         self.num_classes = len(set(self.labels))
-        self.decoder = pd.read_pickle('image_decoder.pkl')
+        self.decoder = pd.read_pickle('decoder.pkl')
 
         self.transform = transform
         if transform is None:

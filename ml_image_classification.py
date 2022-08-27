@@ -15,7 +15,7 @@ def image_classification():
     product category based on the image data, printing the accuracy score and classification report.
     """
     df = pd.read_pickle('ML_product_images.pkl')
-    decode = pd.read_pickle('image_decoder.pkl')
+    decode = pd.read_pickle('decoder.pkl')
 
     X = df['image_array'].apply(lambda x: x.flatten()) # Flatten array so every row contains one flattened array
     y = df.category_codes

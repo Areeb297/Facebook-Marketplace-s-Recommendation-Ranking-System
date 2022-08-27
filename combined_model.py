@@ -12,7 +12,7 @@ from torch.utils.data import random_split
 import copy  
 from tqdm import tqdm
 import datetime
-from imagetext_loader import ImageTextDataset
+from combined_dataloader import ImageTextDataset
 import numpy as np
 from torchvision.models import ResNet50_Weights
 from torchvision import models

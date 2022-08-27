@@ -33,7 +33,7 @@ def merge():
 
     df.to_csv('product_images.csv') # This will be saved for later to use for deep learning/CNNs/transfer learning
     
-    with open('image_decoder.pkl', 'wb') as file: # same encodings no matter how many times it is run
+    with open('decoder.pkl', 'wb') as file: # same encodings no matter how many times it is run
         pickle.dump(decoder_dict, file)
 
     return df

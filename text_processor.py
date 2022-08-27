@@ -84,7 +84,7 @@ class TextProcessor():
 #     device = torch.device('cpu')
 #     model.to(device)
 #     model.eval()
-#     decoder = pd.read_pickle('image_decoder.pkl')
+#     decoder = pd.read_pickle('decoder.pkl')
 #     output = model(description)
 #     _, predicted = torch.max(output.data, 1)
 #     pred = decoder[int(predicted)]

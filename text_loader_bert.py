@@ -35,7 +35,7 @@ class Textloader(torch.utils.data.Dataset):
         self.labels = self.merged_data['category_codes'].to_list()
 
         self.num_classes = len(set(self.labels))
-        self.decoder = pd.read_pickle('image_decoder.pkl') # read in the decoder file which we saved from image classification
+        self.decoder = pd.read_pickle('decoder.pkl') # read in the decoder file which we saved from image classification
 
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
         self.model = BertModel.from_pretrained('bert-base-uncased', output_hidden_states=True)
@@ -105,7 +105,7 @@ class Textloader(torch.utils.data.Dataset):
         self.labels = self.merged_data['category_codes'].to_list()
 
         self.num_classes = len(set(self.labels))
-        self.decoder = pd.read_pickle('image_decoder.pkl') # read in the decoder file which we saved from image classification
+        self.decoder = pd.read_pickle('decoder.pkl') # read in the decoder file which we saved from image classification
 
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
         self.model = BertModel.from_pretrained('bert-base-uncased', output_hidden_states=True)
