@@ -1,4 +1,3 @@
-import pickle
 import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -13,7 +12,6 @@ from pydantic import BaseModel
 import pandas as pd
 from torchvision.models import ResNet50_Weights
 from torchvision import models
-from combined_model import TextClassifier
 ##############################################################
 # TODO                                                       #
 # Import your image and text processors here     
@@ -122,6 +120,31 @@ class ImageClassifier(nn.Module):
             predictions = self.forward(image)
             return self.decoder[int(torch.argmax(predictions, dim=1))]
 
+# We get this from the combined_model.py file
+class TextClassifier(torch.nn.Module):
+    def __init__(self, ngpu=2, input_size=768):
+        super(TextClassifier, self).__init__()
+        self.ngpu = ngpu
+        self.main = torch.nn.Sequential(torch.nn.Conv1d(input_size, 256, kernel_size=3, stride=1, padding=1),
+                                  torch.nn.ReLU(),
+                                  torch.nn.MaxPool1d(kernel_size=2, stride=2),
+                                  torch.nn.Conv1d(256, 128, kernel_size=3, stride=1, padding=1),
+                                  torch.nn.ReLU(),
+                                  torch.nn.MaxPool1d(kernel_size=2, stride=2),
+                                  torch.nn.Dropout(p=0.2),
+                                  torch.nn.Conv1d(128, 64, kernel_size=3, stride=1, padding=1),
+                                  torch.nn.Dropout(p=0.2),
+                                  torch.nn.ReLU(),
+                                  torch.nn.MaxPool1d(kernel_size=2, stride=2),
+                                  torch.nn.Dropout(p=0.2),
+                                  torch.nn.ReLU(),
+                                  torch.nn.Flatten(),
+                                  torch.nn.Linear(128 , 128))
+    def forward(self, input):
+        """Returns prediction on the features using the defined neural network"""
+        x = self.main(input)
+        return x
+
 
 class CombinedModel(nn.Module):
     def __init__(self,
@@ -181,7 +204,7 @@ class TextItem(BaseModel):
 try:
 ##############################################################
 # TODO     
-    decoder = pd.read_pickle('image_decoder.pkl')  
+    decoder = pd.read_pickle('decoder.pkl')  
     n_classes = len(decoder)
     text_model = Text_Classifier(decoder, num_classes=n_classes)
     checkpoint = torch.load('text_model.pt', map_location='cpu')
@@ -202,10 +225,10 @@ except:
 try:
 ##############################################################
 # TODO                                                       #
-    decoder = pd.read_pickle('image_decoder.pkl')  
+    decoder = pd.read_pickle('decoder.pkl')  
     n_classes = len(decoder)
     image_model = ImageClassifier(num_classes=n_classes, decoder=decoder)
-    checkpoint = torch.load('final_models/image_model.pt', map_location='cpu')
+    checkpoint = torch.load('image_model.pt', map_location='cpu')
     image_model.load_state_dict(checkpoint['model_state_dict'])    
     device = torch.device('cpu')
     image_model.to(device)
@@ -223,10 +246,10 @@ except:
 try:
 ##############################################################
 # TODO                                                       #
-    decoder = pd.read_pickle('image_decoder.pkl')  
+    decoder = pd.read_pickle('decoder.pkl')  
     n_classes = len(decoder)
     combined_model = CombinedModel(num_classes=n_classes, decoder=decoder)
-    checkpoint = torch.load('final_models/combined_model.pt', map_location='cpu')
+    checkpoint = torch.load('combined_model.pt', map_location='cpu')
     combined_model.load_state_dict(checkpoint['model_state_dict'])    
     device = torch.device('cpu')
     combined_model.to(device)
@@ -336,4 +359,4 @@ def predict_combined(image: UploadFile = File(...), text: str = Form(...)):
     
     
 if __name__ == '__main__':
-  uvicorn.run(app, host="127.0.0.1", port=8080)
+    uvicorn.run('api_template:app', port=8080, host='0.0.0.0')

@@ -1,0 +1,8 @@
+Pillow
+fastapi
+pydantic
+numpy
+uvicorn
+pandas
+transformers
+python-multipart

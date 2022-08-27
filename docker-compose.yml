@@ -1,0 +1,14 @@
+version : '3.4'
+services:
+    model_serving_api: 
+      build: .
+      image: areeb297/fbmarketplace_model
+      ports: 
+        - 8080:8080
+      restart: always
+      container_name: fb_model_api
+      # environment:
+      #   - BUCKET_NAME=${BUCKET_NAME}
+      # network_mode: host
+      # volumes: 
+      #   - ~/app:/app
