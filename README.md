@@ -722,31 +722,39 @@ if further_training.lower() == 'yes': # If we want to train further in the futur
 
 ## Milestone 7: Configure and deploy the model serving API
 
-## Conclusions
+- The last stage for this project is using FastAPI (a framework built using Python concepts) which gives us a nice web interface that allows us to see and test our api endpoints. We develop the code in the 'api_template.py' file where there we create 3 endpoints, one for each model (image, text and combined models) and each endpoint comprises of creating a post request for either an image, text or both and then the appropriate model (saved from before) is run to return predictions and probabilities which are shown in the web interface. Before the api can output predictions, we have to initialize the models and load the saved weights along with applying the necessary tranformations to the given text or image using the image_processing and text_processing modules (text_processor.py and image_processor.py. Additionally, we use the decoder.pkl before to translate the final output into which product category it represents. The three endpoints provided for each image, text and the combined model are:
 
-- Maybe write a conclusion to the project, what you understood about it and also how you would improve it or take it further.
+- localhost:8080/predict/image
+- localhost:8080/predict/text
+- localhost:8080/predict/combined
 
-- Read through your documentation, do you understand everything you've written? Is everything clear and cohesive?
-
-
-- Does what you have built in this milestone connect to the previous one? If so explain how. What technologies are used? Why have you used them? Have you run any commands in the terminal? If so insert them using backticks (To get syntax highlighting for code snippets add the language after the first backticks).
-
-- Example below:
-
-```bash
-/bin/kafka-topics.sh --list --zookeeper 127.0.0.1:2181
-```
-
-- The above command is used to check whether the topic has been created successfully, once confirmed the API script is edited to send data to the created kafka topic. The docker container has an attached volume which allows editing of files to persist on the container. The result of this is below:
+- The code snippet shown below shows how we use the fastapi instance as a decorator for the combined model function which takes in an image and text and returns predictions and probabilities:
 
 ```python
-"""Insert your code here"""
+app = FastAPI()
+print("Starting server")
+
+@app.post('/predict/combined')
+def predict_combined(image: UploadFile = File(...), text: str = Form(...)):
+    print(text)
+    pil_image = Image.open(image.file)
+    
+    ##############################################################
+    # TODO                                                       #
+    pil_image = Image.open(image.file)
+    processed_image = image_processor(pil_image)
+    processed_text = text_processor(text)
 ```
 
-> Insert screenshot of what you have built working.
 
-## Milestone n
 
-- Continue this process for every milestone, making sure to display clear understanding of each task and the concepts behind them as well as understanding of the technologies used.
+- The JSON response which is the output returned when we make a post request to the api is shown below where the category is the predicted product category and the Probabilities represent how certain the model is of its predictions of every class:
 
-- Also don't forget to include code snippets and screenshots of the system you are building, it gives proof as well as it being an easy way to evidence your experience!
+```python
+JSONResponse(content={
+    "Category": combined_model.predict_classes(processed_image, processed_text), # Return the category here
+    "Probabilities": combined_model.predict_proba(processed_image, processed_text) # Return a list or dict of probabilities here
+        })
+```
+             
+    
