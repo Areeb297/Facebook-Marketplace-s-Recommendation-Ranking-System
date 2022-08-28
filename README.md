@@ -767,4 +767,10 @@ JSONResponse(content={
 - One can play around with the api on the link on the ec2 instance I have running for now (if it does not work, then the ec2 instance has been shutdown): http://54.144.51.52:8080/docs 
 
 
-    
+- Shown below is a demo video shown of how the combined model outputs prediction given an image and product description on the fastapi GUI:
+
+<p align="center">
+<img src='https://user-images.githubusercontent.com/51030860/187089064-b78da58c-78b4-46c6-bc7a-5f154534ff92.png'>
+</p>
+
+
