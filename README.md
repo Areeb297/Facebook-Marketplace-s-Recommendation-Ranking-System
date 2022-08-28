@@ -758,7 +758,23 @@ JSONResponse(content={
         })
 ```
 
-- Lastly, we dockerize our application where we use requirements.txt to install the needed dependencies/packages and expose port 8080 for the api to run on that. We create a docker compose file to run the dockerfile which helps us typing out the whole docker run command and the container restarts automatically with the restart: always command. Additionally, we push this image to the dockerhub account so we can run the image from aws ec2 instance. To run the docker compose file in the ec2 instance, we first create an ubuntu ec2 instance (t2.medium), then we ssh into the instance, pull the docker image from dockerhub, add the docker-compose file to our ec2-instance and then run the docker-compose.yml file using docker compose up. Below are the commands to run:
+- Lastly, we dockerize our application where we use requirements.txt to install the needed dependencies/packages and expose port 8080 for the api to run on that. We create a docker compose file to run the dockerfile which helps us typing out the whole docker run command and the container restarts automatically with the restart: always command. Additionally, we push this image to the dockerhub account so we can run the image from aws ec2 instance.
+
+- The docker compose file contents are shown below:
+
+```
+version : '3.4'
+services:
+    model_serving_api: # service name
+      build: .
+      image: areeb297/fbmarketplace_model # docker image
+      ports: 
+        - 8080:8080
+      restart: always
+      container_name: fb_model_api # container name
+```
+
+-  To run the docker compose file in the ec2 instance, we first create an ubuntu ec2 instance (t2.medium), then we ssh into the instance, pull the docker image from dockerhub, add the docker-compose file to our ec2-instance and then run the docker-compose.yml file using docker compose up. Below are the commands to run:
 
 > sudo docker pull areeb297/fbmarketplace_model
 
@@ -768,9 +784,5 @@ JSONResponse(content={
 
 
 - Shown below is a demo video shown of how the combined model outputs prediction given an image and product description on the fastapi GUI:
-
-<p align="center">
-<img src='https://user-images.githubusercontent.com/51030860/187089064-b78da58c-78b4-46c6-bc7a-5f154534ff92.png'>
-</p>
 
 
