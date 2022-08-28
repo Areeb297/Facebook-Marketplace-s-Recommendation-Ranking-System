@@ -760,8 +760,7 @@ JSONResponse(content={
 
 - Lastly, we dockerize our application where we use requirements.txt to install the needed dependencies/packages and expose port 8080 for the api to run on that. We create a docker compose file to run the dockerfile which helps us typing out the whole docker run command and the container restarts automatically with the restart: always command. Additionally, we push this image to the dockerhub account so we can run the image from aws ec2 instance. To run the docker compose file in the ec2 instance, we first create an ubuntu ec2 instance (t2.medium), then we ssh into the instance, pull the docker image from dockerhub, add the docker-compose file to our ec2-instance and then run the docker-compose.yml file using docker compose up. Below are the commands to run:
 
-> sudo docker pull areeb297/fbmarketplace_model
-> sudo docker compse up
+> sudo docker pull areeb297/fbmarketplace_model\nsudo docker compse up
 
 - One can play around with the api on the link on the ec2 instance I have running for now (if it does not work, then the ec2 instance has been shutdown): http://54.144.51.52:8080/docs 
 
