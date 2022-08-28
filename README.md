@@ -785,4 +785,8 @@ services:
 
 - Shown below is a demo video shown of how the combined model outputs prediction given an image and product description on the fastapi GUI:
 
+<p align="center">
+<img src='https://user-images.githubusercontent.com/51030860/187090477-d83b72d0-87d2-4142-a13f-eb7c2c02d33a.gif'>
+</p>
+
 
