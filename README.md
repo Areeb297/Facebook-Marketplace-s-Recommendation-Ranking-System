@@ -778,7 +778,7 @@ services:
 
 > sudo docker pull areeb297/fbmarketplace_model
 
-> sudo docker compse up
+> sudo docker compose up
 
 - One can play around with the api on the link on the ec2 instance I have running for now (if it does not work, then the ec2 instance has been shutdown): http://54.144.51.52:8080/docs 
 
