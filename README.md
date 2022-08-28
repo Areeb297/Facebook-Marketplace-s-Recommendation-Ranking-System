@@ -8,6 +8,8 @@
 
 Here is the ![video link](https://www.youtube.com/watch?v=1Z5V2VrHTTA&ab_channel=AiCore) for further information and reference.
 
+This system would be useful when a customer looks up an item on facebook marketplace and our trained multi-model returns other products similar to it (in the same category)
+
 ## Milestone 2: Cleaning the tabular and image datasets
 
 - In this stage, we perform data cleaning steps for the product and image datasets. Firstly, concerning the product tabular dataset (Products.csv), we have built a pipeline which completes all cleaning steps like ensuring all null and duplicate values are removed and all data formats are correct e.g., the data type of the price column is converted to float and the time column is converted to datetime. We ensure features like location and product category are converted into 'category' format (nominal data). Additionally, we clean the text data by removing non-alphanumeric characters and unnecessary whitespaces which will help in keeping only important words when using TF-IDF and linear regression to predict product price. For these transformations, we use the pandas library and Regex expression to clean the product dataset as shown below.
@@ -747,7 +749,6 @@ def predict_combined(image: UploadFile = File(...), text: str = Form(...)):
 ```
 
 
-
 - The JSON response which is the output returned when we make a post request to the api is shown below where the category is the predicted product category and the Probabilities represent how certain the model is of its predictions of every class:
 
 ```python
@@ -756,5 +757,13 @@ JSONResponse(content={
     "Probabilities": combined_model.predict_proba(processed_image, processed_text) # Return a list or dict of probabilities here
         })
 ```
-             
+
+- Lastly, we dockerize our application where we use requirements.txt to install the needed dependencies/packages and expose port 8080 for the api to run on that. We create a docker compose file to run the dockerfile which helps us typing out the whole docker run command and the container restarts automatically with the restart: always command. Additionally, we push this image to the dockerhub account so we can run the image from aws ec2 instance. To run the docker compose file in the ec2 instance, we first create an ubuntu ec2 instance (t2.medium), then we ssh into the instance, pull the docker image from dockerhub, add the docker-compose file to our ec2-instance and then run the docker-compose.yml file using docker compose up. Below are the commands to run:
+
+> sudo docker pull areeb297/fbmarketplace_model
+> sudo docker compse up
+
+- One can play around with the api on the link on the ec2 instance I have running for now (if it does not work, then the ec2 instance has been shutdown): http://54.144.51.52:8080/docs 
+
+
     
