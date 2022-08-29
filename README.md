@@ -780,7 +780,7 @@ services:
 
 > sudo docker compose up
 
-- One can play around with the api by clicking the link to the ec2 instance I have running for now (if it does not work, then the ec2 instance has been shut down): http://54.144.51.52:8080/docs 
+- One can play around with the api by clicking the link to the ec2 instance I have running for now (if it does not work, then the ec2 instance has been shut down): http://34.224.214.192:8080/docs 
 
 
 - Shown below is a demo video of how the combined model outputs prediction given an image and product description on the fastapi GUI:
