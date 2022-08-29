@@ -780,6 +780,10 @@ services:
 
 > sudo docker-compose up
 
+- Or one can simply run without using docker-compose:
+
+> docker run -p 8080:8080 areeb297/fbmarketplace_model
+
 - One can play around with the api by clicking the link to the ec2 instance I have running for now (if it does not work, then the ec2 instance has been shut down): http://34.224.214.192:8080/docs 
 
 - We can additionally use Python requests module to input an image and text and use the requests.post method to post this data to the api and obtain an output as shown below:
