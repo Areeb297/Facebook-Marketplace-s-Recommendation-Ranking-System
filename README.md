@@ -788,7 +788,7 @@ services:
 <img src='https://user-images.githubusercontent.com/51030860/187138553-c91d47f4-f88c-4c16-b2d7-e916e9e326cc.png'>
 </p>
 
-- Shown below is a demo video of how the combined model outputs prediction given an image and product description on the fastapi GUI:
+- Shown below is a demo video of how the combined model outputs prediction given an image and product description on the fastapi GUI where since we restarted the ec2 instance, the public ip address is different now:
 
 <p align="center">
 <img src='https://user-images.githubusercontent.com/51030860/187090477-d83b72d0-87d2-4142-a13f-eb7c2c02d33a.gif'>
