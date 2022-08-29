@@ -782,6 +782,11 @@ services:
 
 - One can play around with the api by clicking the link to the ec2 instance I have running for now (if it does not work, then the ec2 instance has been shut down): http://34.224.214.192:8080/docs 
 
+- We can additionally use Python requests module to input an image and text and use the requests.post method to post this data to the api and obtain an output as shown below:
+
+<p align="center">
+<img src='https://user-images.githubusercontent.com/51030860/187138553-c91d47f4-f88c-4c16-b2d7-e916e9e326cc.png'>
+</p>
 
 - Shown below is a demo video of how the combined model outputs prediction given an image and product description on the fastapi GUI:
 
