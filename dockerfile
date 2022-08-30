@@ -1,6 +1,6 @@
 FROM python:3.8
 
-# WORKDIR /app
+WORKDIR /app
 
 RUN apt-get update
 RUN apt-get install \
@@ -12,7 +12,10 @@ COPY requirements.txt .
 
 RUN pip3 install -r requirements.txt
 
-COPY . .
+COPY ["combined_model.py", "combined_dataloader.py", "api_template.py", "clean_tabular_data.py", "decoder.pkl", \
+"image_processor.py", "text_model.pt", "text_processor.py", "./"]
+
+COPY final_models ./
 
 EXPOSE 8080
 
