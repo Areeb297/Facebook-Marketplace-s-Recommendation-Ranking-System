@@ -780,7 +780,7 @@ services:
 
 > sudo docker-compose up
 
-- Or one can simply run without using docker-compose:
+- Alternatively, one can simply run without using docker-compose:
 
 > docker run -p 8080:8080 areeb297/fbmarketplace_model
 
