@@ -758,7 +758,7 @@ JSONResponse(content={
         })
 ```
 
-- Lastly, we dockerize our application where we use requirements.txt to install the needed dependencies/packages and expose port 8080 for the api to run on that. We create a docker compose file to run the dockerfile which helps us typing out the whole docker run command and the container restarts automatically with the restart: always command. Additionally, we push this image to the dockerhub account so we can run the image from aws ec2 instance.
+- Lastly, we dockerize our application where we use requirements.txt to install the needed dependencies/packages and expose port 8080 for the api to run on that. We create a docker compose file to run the dockerfile which saves us from typing out the whole docker run command and the container restarts automatically with the restart: always command. Additionally, we push this image to the dockerhub account so we can run the image from aws ec2 instance.
 
 - The docker compose file contents are shown below:
 
